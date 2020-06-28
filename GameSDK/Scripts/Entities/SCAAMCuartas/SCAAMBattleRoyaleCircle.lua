@@ -93,7 +93,7 @@ function SCAAMBattleRoyaleCircle.Client:SCAAMSetScale(scale)
 end
 
 function SCAAMBattleRoyaleCircle:SetScaleAfterDelay()
-    self:SetWorldScale(tonumber(self.circleScale));
+    self:SetWorldScaleV({x = tonumber(self.circleScale), y = tonumber(self.circleScale), z = 500});
 end
 
 function SCAAMBattleRoyaleCircle.Server:OnHit(hit)

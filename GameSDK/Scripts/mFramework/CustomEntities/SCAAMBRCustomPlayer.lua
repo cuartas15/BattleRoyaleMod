@@ -96,7 +96,7 @@ local SCAAMBRCustomPlayer = {
             -- SCAAMBRToggleUI
             -- Toggles on/off a specific BR UI or all, depending on the UIName
             SCAAMBRToggleUI = function (self, UIName, toggler)
-                SCAAMBRUIFunctions:ReactivateInitFilters();
+                -- SCAAMBRUIFunctions:ReactivateInitFilters();
                 self:SCAAMBRToggleUIClient(UIName, toggler);
             end,
 
@@ -181,13 +181,14 @@ local SCAAMBRCustomPlayer = {
                     UIAction.ShowElement('mod_SCAAMBRStatsUI', 0);
                     self.SCAAMBRToggledUI = true;
                 else
-                    self:SCAAMBRChangeTheUIStateClient('gotoidle', '')
-                    UIAction.HideElement('mod_SCAAMBRStatsUI', 0);
+                    self:SCAAMBRChangeTheUIStateClient('gotoidle', '');
                     self.SCAAMBRToggledUI = false;
+                    UIAction.HideElement('mod_SCAAMBRStatsUI', 0);
                 end
             elseif (UIName == 'initial') then
                 if (toggler == true) then
                     UIAction.ShowElement('mod_SCAAMBRStatsUI', 0);
+                    UIAction.CallFunction('mod_SCAAMBRStatsUI', 0, 'SetVersion', SCAAMBRVersion);
                     self.SCAAMBRToggledLobbyUI = true;
                     self.SCAAMBRToggledUI = true;
                 else
@@ -260,28 +261,34 @@ local SCAAMBRCustomPlayer = {
                     SCAAMBRUIFunctions:ReactivateFilters();
                     self.SCAAMBRFrozenPlayer = false;
 
-                    Log('Reactivated filters and unfrozen player');
-
                     if (self.SCAAMBRToggledLobbyUI == false) then
                         self.SCAAMBRToggledLobbyUI = true;
                         UIAction.CallFunction('mod_SCAAMBRStatsUI', 0, 'GoToIdle');
-
-                        Log('Went to idle');
                     end
 
                     -- Checks if the map UI in game is opened then closes it
                     SCAAMBRUIFunctions:CleanIndicatorsGame();
 
-                    Log('Cleaned indicators');
-
                     if (self.SCAAMBRToggledMapUI == true) then
                         SCAAMBRUIFunctions:CloseMapGame();
                         UIAction.CallFunction('mod_SCAAMBRStatsUI', 0, 'ToggleMiniMap', false);
                         self.SCAAMBRToggledMapUI = false;
-
-                        Log('Closed map and opened minimap');
                     end
                 elseif (action == 'freezeplayer') then
+                    if (value == 'showloading') then
+                        if (self.SCAAMBRToggledLobbyUI == true) then
+        
+                            -- Closes the Menu UI if opened
+                            if (self.SCAAMBRMenuState == 'active') then
+                                SCAAMBRUIFunctions:CloseTheMenu();
+                                UIAction.ShowElement('mod_SCAAMBRStatsUI', 0);
+                                self.SCAAMBRMenuState = 'idle';
+                            end
+                        end
+        
+                        UIAction.CallFunction('mod_SCAAMBRStatsUI', 0, 'GoToLoadingScreen', false);
+                    end
+        
                     SCAAMBRUIFunctions:DeactivateFilters();
                     self.SCAAMBRFrozenPlayer = true;
                 elseif (action == 'unfreezeplayer') then

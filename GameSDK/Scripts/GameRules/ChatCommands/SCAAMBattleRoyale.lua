@@ -1,4 +1,4 @@
--- SCAAM Battle Royale Mod v1.0
+-- SCAAM Battle Royale Mod v1.1
 -- Created by Cuartas
 
 -- Dear Modder: Almost everything was commented step by step for you to easily understand what
@@ -7,6 +7,8 @@
 -- mods or more customized battle royale for your servers.
 -- Don't hesitate to provide feedback or bug reports in case you encounter an issue.
 -- Happy modding!
+
+SCAAMBRVersion = '1.1';
 
 -- Loading all the custom entities
 Script.LoadScript('Scripts/Entities/SCAAMCuartas/SCAAMBattleRoyaleCircle.lua');
@@ -2987,7 +2989,7 @@ SCAAMBRItemCategories = {
             {Item = 'RPK_jack_green', Ammo = '762x39_magazine,762x39_ext_magazine', Spawner = 'Phase1,Phase2'},
             {Item = 'RPK_jack_blue', Ammo = '762x39_magazine,762x39_ext_magazine', Attachment1 = 'PSOScope', Spawner = 'Phase2,Phase3,Phase4,Phase5'},
             {Item = 'RPK_jack_gold', Ammo = '762x39_magazine,762x39_ext_magazine', Attachment1 = 'PSOScope', Attachment2 = 'RifleSilencer', Spawner = 'Phase5,Phase6'},
-            {Item = 'VSS_jack_green', Ammo = '762x39_magazine,762x39_small_magazine', Spawner = 'Phase1,Phase2'},
+            {Item = 'VSS_jack_green', Ammo = '762x39_magazine,762x39_small_magazine', Attachment1 = 'PSOScope', Spawner = 'Phase1,Phase2'},
             {Item = 'VSS_jack_blue', Ammo = '762x39_magazine,762x39_small_magazine', Attachment1 = 'PSOScope', Spawner = 'Phase2,Phase3,Phase4,Phase5'},
             {Item = 'VSS_jack_gold', Ammo = '762x39_magazine,762x39_small_magazine', Attachment1 = 'PSOScope', Spawner = 'Phase5,Phase6'},
             {Item = 'CraftedRifleLong_jack', Ammo = '556x45_magazine', Spawner = 'Ground'},
@@ -3009,10 +3011,10 @@ SCAAMBRItemCategories = {
             {Item = 'CraftedShotgun_jack', Ammo = 'Pile_12GaugeSlug', Spawner = 'Ground'}
         },
         RandomBoltAction = {
-            {Item = 'ACAW_jack_green', Ammo = '762x51_magazine', Spawner = 'Phase2,Phase3'},
+            {Item = 'ACAW_jack_green', Ammo = '762x51_magazine', Attachment1 = 'OPKSight,R3Sight,ReddotSight,ReflexSight,T1Micro', Spawner = 'Phase2,Phase3'},
             {Item = 'ACAW_jack_blue', Ammo = '762x51_magazine', Attachment1 = 'OPKSight,R3Sight,ReddotSight,ReflexSight,T1Micro', Spawner = 'Phase2,Phase3,Phase4,Phase5'},
             {Item = 'ACAW_jack_gold', Ammo = '762x51_magazine', Attachment1 = 'OpticScope,HuntingScope,OPKSight,R3Sight,ReddotSight,ReflexSight,T1Micro', Attachment2 = 'RifleSilencer', Spawner = 'Phase5,Phase6'},
-            {Item = 'M40A5_jack_green', Ammo = '762x51_magazine', Spawner = 'Phase1,Phase2'},
+            {Item = 'M40A5_jack_green', Ammo = '762x51_magazine', Attachment1 = 'OPKSight,R3Sight,ReddotSight,ReflexSight,T1Micro', Spawner = 'Phase1,Phase2'},
             {Item = 'M40A5_jack_blue', Ammo = '762x51_magazine', Attachment1 = 'OPKSight,R3Sight,ReddotSight,ReflexSight,T1Micro', Attachment2 = 'RifleSilencer', Spawner = 'Phase2,Phase3,Phase4,Phase5'},
             {Item = 'M40A5_jack_gold', Ammo = '762x51_magazine', Attachment1 = 'OpticScope,HuntingScope,OPKSight,R3Sight,ReddotSight,ReflexSight,T1Micro', Attachment2 = 'RifleSilencer', Spawner = 'Phase5,Phase6'},
             {Item = 'Model70_jack_green', Ammo = 'Pile_223', Spawner = 'Phase1,Phase2'},
@@ -3048,7 +3050,7 @@ SCAAMBRItemCategories = {
             {Item = 'MP5_jack_green', Ammo = '10mm_ext_magazine,10mm_magazine', Spawner = 'Ground,Phase1,Phase2'},
             {Item = 'MP5_jack_blue', Ammo = '10mm_ext_magazine,10mm_magazine', Attachment1 = 'ReddotSight,OPKSight,R3Sight,T1Micro,ReflexSight', Spawner = 'Phase2,Phase3,Phase4,Phase5'},
             {Item = 'MP5_jack_gold', Ammo = '10mm_ext_magazine,10mm_magazine', Attachment1 = 'ReddotSight,OPKSight,R3Sight,T1Micro,ReflexSight,OpticScope', Attachment2 = 'RifleSilencer', Spawner = 'Phase5,Phase6'},
-            {Item = 'R90_jack_green', Ammo = '57x50_magazine', Spawner = 'Ground,Phase1,Phase2'},
+            {Item = 'R90_jack_green', Ammo = '57x50_magazine', Attachment1 = 'T1Micro,OPKSight,R3Sight,ReflexSight,ReddotSight', Spawner = 'Ground,Phase1,Phase2'},
             {Item = 'R90_jack_blue', Ammo = '57x50_magazine', Attachment1 = 'T1Micro,OPKSight,R3Sight,ReflexSight,ReddotSight', Spawner = 'Phase2,Phase3,Phase4,Phase5'},
             {Item = 'R90_jack_gold', Ammo = '57x50_magazine', Attachment1 = 'T1Micro,OPKSight,R3Sight,ReflexSight,ReddotSight,OpticScope', Attachment2 = 'LaserSight,RifleSilencer', Spawner = 'Phase5,Phase6'},
             {Item = 'CraftedSMG_jack', Ammo = '9mm_small_magazine,9mm_magazine,9mm_ext_magazine', Spawner = 'Ground'}
@@ -3850,7 +3852,7 @@ function SCAAMBRGivePlayerInitialEquipment(playerId)
     player.actor:PickUpItem(item.id);
 
     -- Legs
-    rnd = random(4);
+    rnd = random(5);
 
     if (rnd == 1) then
         currentItemClass = 'BlueJeans';
@@ -3858,6 +3860,8 @@ function SCAAMBRGivePlayerInitialEquipment(playerId)
         currentItemClass = 'BlueJeans2';
     elseif (rnd == 3) then
         currentItemClass = 'BlueJeans2Brown';
+    elseif (rnd == 4) then
+        currentItemClass = 'ScavengerPants';
     else
         currentItemClass = 'BlueJeans2Green';
     end
@@ -3877,7 +3881,7 @@ function SCAAMBRGivePlayerInitialEquipment(playerId)
     elseif (rnd == 4) then
         currentItemClass = 'TshirtNoImageGrey';
     elseif (rnd == 5) then
-        currentItemClass = 'TshirtNoImagePink';
+        currentItemClass = 'ScavengerShirt';
     else
         currentItemClass = 'TshirtNoImageRed';
     end
@@ -4303,9 +4307,6 @@ function SCAAMBRCleanPlayer(playerId)
     -- Toggles on the BR UI
     local playerChannel = player.actor:GetChannel();
     player.onClient:SCAAMBRToggleUI(playerChannel, 'initial', true);
-
-    -- Teleports the player to the lobby zone
-    player.player:TeleportTo(SCAAMBRLobbyProperties.Positions[math.random(table.getn(SCAAMBRLobbyProperties.Positions))].Position);
 end
 
 -- SCAAMBRCleanPlayerAfterDelay
@@ -4586,8 +4587,9 @@ function SCAAMBRRegisterHit(hit)
 
                 -- Updates the kill count on the kill player
                 playerKiller.SCAAMBRKills = playerKiller.SCAAMBRKills + 1;
-                local playerKillerChannel = playerKiller.actor:GetChannel();
-                playerKiller.onClient:SCAAMBRChangeTheStates(playerKillerChannel, 'setkillcounter', tostring(playerKiller.SCAAMBRKills));
+
+                -- Calls the function to update the kill counter after 1s
+                Script.SetTimerForFunction(1000, 'SCAAMBRUpdateKillerKills', playerKiller);
                 
                 -- Setting the headshot or regular kill message
                 local message = '';
@@ -4622,6 +4624,15 @@ function SCAAMBRRegisterHit(hit)
     end
 end
 
+-- SCAAMBRUpdateKillerKills
+-- Updates the player UI kill counter after killing another player, but before it checks if the player is still alive
+function SCAAMBRUpdateKillerKills(playerKiller)
+    if (playerKiller.SCAAMBRState == 'Playing') then
+        local playerKillerChannel = playerKiller.actor:GetChannel();
+        playerKiller.onClient:SCAAMBRChangeTheStates(playerKillerChannel, 'setkillcounter', tostring(playerKiller.SCAAMBRKills));
+    end
+end
+
 -- SCAAMBRProcessDamage
 -- Process the player damage, that being by circle or a hit and determines if the player died and takes the proper measures
 function SCAAMBRProcessDamage(player, processFromCircle)
@@ -4636,6 +4647,7 @@ function SCAAMBRProcessDamage(player, processFromCircle)
             -- Forces a kill on the player
             player.player:SetHealth(0.01);
             player.player:SetWater(0);
+            player.player:SetBleedingLevel(3);
 
             -- Editor or server specific actions
             if (System.IsEditor()) then
@@ -4701,10 +4713,20 @@ function SCAAMBRProcessDamage(player, processFromCircle)
 
         SCAAMBRPlayerDatabase:SetPage(killedSteamID, playerPersistentData);
 
-        -- Updates the player count on all players
-        for key, player2 in pairs(playingPlayerEntities) do
-            local playerChannel = player2.actor:GetChannel();
-            player2.onClient:SCAAMBRChangeTheStates(playerChannel, 'setplayercounter', tostring(playersPlaying));
+        -- Calls the function to update the kill counter after 1s
+        Script.SetTimerForFunction(1000, 'SCAAMBRUpdatePlayerCount', playingPlayerEntities);
+    end
+end
+
+-- SCAAMBRUpdatePlayerCount
+-- Updates the player counter after killing an update in their numbers happens
+function SCAAMBRUpdatePlayerCount(playingPlayerEntities)
+
+    -- Updates the player count on all players
+    for key, player in pairs(playingPlayerEntities) do
+        if (player.SCAAMBRState == 'Playing') then
+            local playerChannel = player.actor:GetChannel();
+            player.onClient:SCAAMBRChangeTheStates(playerChannel, 'setplayercounter', tostring(SCAAMBattleRoyaleProperties.CurrentPlayers));
         end
     end
 end
@@ -5028,7 +5050,7 @@ function SCAAMBRCheckPlayers(circle, radius)
         -- Freezes the winner player so it prevents desync issues
         local playerChannel = listOfPlayingPlayers[1].actor:GetChannel();
         listOfPlayingPlayers[1].onClient:SCAAMBRChangeTheStates(playerChannel, 'freezeplayer', '');
-        
+
         -- Calls the lobby function after a delay
         Script.SetTimerForFunction(5000, 'SCAAMBRDeclareWinner', listOfPlayingPlayers[1]);
 
@@ -5171,7 +5193,7 @@ function SCAAMBRValidateStart(dummyVar)
 
                 -- Freezes the player so it can't do any action
                 local playerChannel = player.actor:GetChannel();
-                player.onClient:SCAAMBRChangeTheStates(playerChannel, 'freezeplayer', '');
+                player.onClient:SCAAMBRChangeTheStates(playerChannel, 'freezeplayer', 'showloading');
             end
 
             Script.SetTimerForFunction(15000, 'SCAAMBRStartGameAfterDelay', {});
@@ -5418,6 +5440,9 @@ function SCAAMBRDeclareWinner(data)
 
         -- Cleans the player from all the items
         SCAAMBRCleanPlayer(data.id);
+
+        -- Teleports the player to the lobby zone
+        data.player:TeleportTo(SCAAMBRLobbyProperties.Positions[math.random(table.getn(SCAAMBRLobbyProperties.Positions))].Position);
     end
 
     -- Removes all the circle and dummy circle entities
@@ -6000,7 +6025,11 @@ function SCAAMBRManageMenu(keyString)
 
                 -- Checks in what state the menu is to either open or close it
                 if (player.SCAAMBRMenuState == 'idle') then
-                    player.server:SCAAMBRGetTheMenuDat(g_localActorId, '');
+
+                    -- Checks if the inventory menu is not opened
+                    if (ActionMapManager.IsFilterEnabled('inventory') == false) then
+                        player.server:SCAAMBRGetTheMenuDat(g_localActorId, '');
+                    end
                 else
                     SCAAMBRUIFunctions:CloseMenu();
                     UIAction.ShowElement('mod_SCAAMBRStatsUI', 0);
@@ -6022,8 +6051,12 @@ function SCAAMBRManageMenu(keyString)
                     end
                 else
                     if (player.SCAAMBRToggledMapUI == false) then
-                        player.SCAAMBRToggledMapUI = true;
-                        SCAAMBRUIFunctions:OpenMapGame();
+
+                        -- Checks if the inventory menu is not opened
+                        if (ActionMapManager.IsFilterEnabled('inventory') == false) then
+                            player.SCAAMBRToggledMapUI = true;
+                            SCAAMBRUIFunctions:OpenMapGame();
+                        end
                     else
                         player.SCAAMBRToggledMapUI = false;
                         SCAAMBRUIFunctions:CloseMapGame();
@@ -6270,7 +6303,7 @@ function SCAAMBRGetTopFifteen()
 
         for _ in pairs(SCAAMBRPlayerDatabase.parent.db['SCAAMBattleRoyalePlayerCollection']) do
             count = count + 1;
-            if (count > 1) then
+            if (count > 0) then
                 break;
             end
         end
@@ -6285,24 +6318,31 @@ function SCAAMBRGetTopFifteen()
 
                 table.insert(topFifteen, topFifteenRow);
             end
+
+            -- Gets the max players saved on db and sets the limit to 15
+            local playerDBCount = table.getn(topFifteen);
+
+            if (playerDBCount > 15) then
+                playerDBCount = 15;
+            end
     
             table.sort(topFifteen, function(a, b) return a[3] > b[3] end);
 
-            for i = 1, 15, 1 do
+            for i = 1, playerDBCount, 1 do
                 local topFifteenRow = {topFifteen[i][1], tostring(topFifteen[i][2]), tostring(topFifteen[i][3]), tostring(topFifteen[i][4])};
                 table.insert(topFifteenKills, topFifteenRow);
             end
 
             table.sort(topFifteen, function(a, b) return a[4] > b[4] end);
 
-            for i = 1, 15, 1 do
+            for i = 1, playerDBCount, 1 do
                 local topFifteenRow = {topFifteen[i][1], tostring(topFifteen[i][2]), tostring(topFifteen[i][3]), tostring(topFifteen[i][4])};
                 table.insert(topFifteenDamage, topFifteenRow);
             end
 
             table.sort(topFifteen, function(a, b) return a[2] > b[2] end);
 
-            for i = 1, 15, 1 do
+            for i = 1, playerDBCount, 1 do
                 local topFifteenRow = {topFifteen[i][1], tostring(topFifteen[i][2]), tostring(topFifteen[i][3]), tostring(topFifteen[i][4])};
                 table.insert(topFifteenWins, topFifteenRow);
             end
@@ -6458,22 +6498,6 @@ RegisterCallbackReturnAware(
     nil,
     function (self, ret, playerId)
 
-        -- Tries to teleport the player to a lobby spawn in hopes to fix the issue with the freeze
-        local player = System.GetEntity(playerId);
-
-        player:SetWorldPos(SCAAMBRLobbyProperties.Positions[math.random(table.getn(SCAAMBRLobbyProperties.Positions))].Position);
-
-        return ret;
-    end
-);
-
--- Calling the Miscreated Revive player function to initialize the BR script
-RegisterCallbackReturnAware(
-    Miscreated,
-    'RevivePlayer',
-    nil,
-    function (self, ret, playerId)
-
         -- Initializes the BR scripts when the first player ever connects to the server
         if (SCAAMBattleRoyalePlayerManagement.HasTheScriptInitialized == false) then
 
@@ -6524,11 +6548,24 @@ RegisterCallbackReturnAware(
 
             -- Inits the custom UI support for players
             player.onClient:SCAAMBRUIInit(playerChannel);
+            
+            -- Tries to teleport the player to a lobby spawn in hopes to fix the issue with the freeze
+            player:SetWorldPos(SCAAMBRLobbyProperties.Positions[math.random(table.getn(SCAAMBRLobbyProperties.Positions))].Position);
 
             -- Removes all items from the player after a delay
             Script.SetTimerForFunction(SCAAMBattleRoyalePlayerManagement.WaitingTimer, 'SCAAMBRCleanPlayerAfterDelay', {PlayerId = playerId});
         end
 
+        return ret;
+    end
+);
+
+-- Calling the Miscreated Revive player function to initialize the BR script
+RegisterCallbackReturnAware(
+    Miscreated,
+    'RevivePlayer',
+    nil,
+    function (self, ret, playerId)
         return ret;
     end
 );
@@ -7268,47 +7305,196 @@ ChatCommands["!changetimer"] = function(playerId, command)
     end
 end
 
--- !hide <subcommand>
--- Uses the !changetimer command with a subcommand to change the timer
-ChatCommands["!hide"] = function(playerId, command)
+-- !kick <subcommand>
+-- Uses the !kick command with a subcommand to kick a player with a given name
+ChatCommands["!kick"] = function(playerId, command)
     local player = System.GetEntity(playerId);
     local steamId = player.player:GetSteam64Id();
 
     -- Checks if the player has permissions to perform this command
     if (string.match(System.GetCVar('g_gameRules_faction4_steamids'), steamId)) then
-        player:Hide(tonumber(command));
+        local playerList = CryAction.GetPlayerList();
+        local playerFound = nil;
 
-        -- Editor or server specific actions
-        if (System.IsEditor()) then
-            g_gameRules.game:SendTextMessage(0, g_localActorId, 'Hiding to ' .. tostring(command) .. ' worked?');
+        -- Checks the list of players for a name to match
+        for key, player2 in pairs(playerList) do
+            if (string.match(command, player2:GetName())) then
+                playerFound = player2;
+                break;
+            end
+        end
+
+        -- If found a player they get kicked out from the server
+        if (playerFound) then
+            local steamId = playerFound.player:GetSteam64Id();
+            System.ExecuteCommand('mis_kick ' .. tostring(steamId));
+
+            -- Editor or server specific actions
+            if (System.IsEditor()) then
+                g_gameRules.game:SendTextMessage(4, g_localActorId, 'Player ' .. playerFound:GetName() .. ' was kicked from the server');
+            else
+                g_gameRules.game:SendTextMessage(4, 0, 'Player ' .. playerFound:GetName() .. ' was kicked from the server');
+            end
         else
-            g_gameRules.game:SendTextMessage(0, playerId, 'Hiding to ' .. tostring(command) .. ' worked?');
+
+            -- Editor or server specific actions
+            if (System.IsEditor()) then
+                g_gameRules.game:SendTextMessage(4, g_localActorId, 'Player ' .. command .. " wasn't found");
+            else
+                g_gameRules.game:SendTextMessage(4, playerId, 'Player ' .. command .. " wasn't found");
+            end
         end
     end
 end
 
--- !spectate <subcommand>
--- Uses the !spawnitem command with a subcommand to spawn an item in the world
-ChatCommands["!spectate"] = function(playerId, command)
+-- !ban <subcommand>
+-- Uses the !ban command with a subcommand to ban a player with a given name
+ChatCommands["!ban"] = function(playerId, command)
     local player = System.GetEntity(playerId);
-    local listOfPlayers = CryAction.GetPlayerList();
-    local spectatedPlayer = nil;
-    local spectatedPlayerPos = {};
+    local steamId = player.player:GetSteam64Id();
 
-    for key, player2 in pairs(listOfPlayers) do
-        if (playerId ~= player2.id) then
-            spectatedPlayer = player2.id;
-            spectatedPlayerPos = player2:GetWorldPos();
-            break;
+    -- Checks if the player has permissions to perform this command
+    if (string.match(System.GetCVar('g_gameRules_faction4_steamids'), steamId)) then
+        local playerList = CryAction.GetPlayerList();
+        local playerFound = nil;
+
+        -- Checks the list of players for a name to match
+        for key, player2 in pairs(playerList) do
+            if (string.match(command, player2:GetName())) then
+                playerFound = player2;
+                break;
+            end
+        end
+
+        -- If found a player they get banned from the server
+        if (playerFound) then
+            local steamId = playerFound.player:GetSteam64Id();
+            System.ExecuteCommand('mis_ban_steamid ' .. tostring(steamId));
+
+            -- Editor or server specific actions
+            if (System.IsEditor()) then
+                g_gameRules.game:SendTextMessage(4, g_localActorId, 'Player ' .. playerFound:GetName() .. ' was banned from the server');
+            else
+                g_gameRules.game:SendTextMessage(4, 0, 'Player ' .. playerFound:GetName() .. ' was banned from the server');
+            end
+        else
+
+            -- Editor or server specific actions
+            if (System.IsEditor()) then
+                g_gameRules.game:SendTextMessage(4, g_localActorId, 'Player ' .. command .. " wasn't found");
+            else
+                g_gameRules.game:SendTextMessage(4, playerId, 'Player ' .. command .. " wasn't found");
+            end
+        end
+    end
+end
+
+-- !changetimer <subcommand>
+-- Uses the !changetimer command with a subcommand to change the timer
+ChatCommands["!changetimer"] = function(playerId, command)
+    local player = System.GetEntity(playerId);
+    local steamId = player.player:GetSteam64Id();
+
+    -- Checks if the player has permissions to perform this command
+    if (string.match(System.GetCVar('g_gameRules_faction4_steamids'), steamId)) then
+        SCAAMBattleRoyalePlayerManagement.WaitingTimer = tonumber(command);
+
+        -- Editor or server specific actions
+        if (System.IsEditor()) then
+            g_gameRules.game:SendTextMessage(0, g_localActorId, 'Changed timer to ' .. tostring(command));
+        else
+            g_gameRules.game:SendTextMessage(0, playerId, 'Changed timer to ' .. tostring(command));
+        end
+    end
+end
+
+-- -- !hide <subcommand>
+-- -- Uses the !hide command with a subcommand to hide the player
+-- ChatCommands["!hide"] = function(playerId, command)
+--     local player = System.GetEntity(playerId);
+--     local steamId = player.player:GetSteam64Id();
+
+--     -- Checks if the player has permissions to perform this command
+--     if (string.match(System.GetCVar('g_gameRules_faction4_steamids'), steamId)) then
+--         player:Hide(tonumber(command));
+
+--         -- Editor or server specific actions
+--         if (System.IsEditor()) then
+--             g_gameRules.game:SendTextMessage(0, g_localActorId, 'Hiding to ' .. tostring(command) .. ' worked?');
+--         else
+--             g_gameRules.game:SendTextMessage(0, playerId, 'Hiding to ' .. tostring(command) .. ' worked?');
+--         end
+--     end
+-- end
+
+-- -- !spectate <subcommand>
+-- -- Uses the !spectate command with a subcommand to spawn an item in the world
+-- ChatCommands["!spectate"] = function(playerId, command)
+--     local player = System.GetEntity(playerId);
+--     local listOfPlayers = CryAction.GetPlayerList();
+--     local spectatedPlayer = nil;
+--     local spectatedPlayerPos = {};
+
+--     for key, player2 in pairs(listOfPlayers) do
+--         if (playerId ~= player2.id) then
+--             spectatedPlayer = player2.id;
+--             spectatedPlayerPos = player2:GetWorldPos();
+--             break;
+--         end
+--     end
+
+--     if (spectatedPlayer ~= nil) then
+--         player.SCAAMBRSavedPosition = player:GetWorldPos();
+--         player:Hide(1);
+
+--         local playerChannel = player.actor:GetChannel();
+
+--         player.onClient:SCAAMBRSpectatePlayer(playerChannel, spectatedPlayerPos);
+--     end
+-- end
+
+-- !whois <subcommand>
+-- Uses the !whois command to see the player name and Id
+ChatCommands["!whois"] = function(playerId, command)
+    local player = System.GetEntity(playerId);
+    local whoisPlayer = nil;
+
+    local vForwardOffset = {x=0, y=0, z=0};
+    local vPointingPosition = {x=0, y=0, z=0};
+    FastScaleVector(vForwardOffset, player:GetDirectionVector(), 1.0);
+    FastSumVectors(vPointingPosition, vForwardOffset, player:GetWorldPos());
+    
+    local whoisPlayers = System.GetEntitiesInSphereByClass(vPointingPosition, 1, 'Player');
+    
+    if (table.getn(whoisPlayers) > 0) then
+        for key, player2 in pairs(whoisPlayers) do
+            if (player2.id ~= playerId) then
+                whoisPlayer = player2;
+                break;
+            end
         end
     end
 
-    if (spectatedPlayer ~= nil) then
-        player.SCAAMBRSavedPosition = player:GetWorldPos();
-        player:Hide(1);
+    if (whoisPlayer ~= nil) then
 
-        local playerChannel = player.actor:GetChannel();
+        -- Editor or server specific actions
+        if (System.IsEditor()) then
+            g_gameRules.game:SendTextMessage(4, g_localActorId, 'The player is: ' .. whoisPlayer:GetName());
+            g_gameRules.game:SendTextMessage(4, g_localActorId, 'The player steam id is: ' .. whoisPlayer.player:GetSteam64Id());
+        else
+            g_gameRules.game:SendTextMessage(4, playerId, 'The player is: ' .. whoisPlayer:GetName());
+            g_gameRules.game:SendTextMessage(4, playerId, 'The player steam id is: ' .. whoisPlayer.player:GetSteam64Id());
+        end
 
-        player.onClient:SCAAMBRSpectatePlayer(playerChannel, spectatedPlayerPos);
+        Log('Player is: ' .. whoisPlayer:GetName());
+        Log('Player steam id is: ' .. whoisPlayer.player:GetSteam64Id());
+    else
+
+        -- Editor or server specific actions
+        if (System.IsEditor()) then
+            g_gameRules.game:SendTextMessage(0, g_localActorId, 'No player found');
+        else
+            g_gameRules.game:SendTextMessage(0, playerId, 'No player found');
+        end
     end
 end

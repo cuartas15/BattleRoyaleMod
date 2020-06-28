@@ -41,8 +41,12 @@
         <param name="safeZoneData" desc="" type="String" />
       </function>
       <function name="CleanIndicators" funcname="CleanIndicators"></function>
+      <function name="SetVersion" funcname="SetVersion">
+        <param name="version" desc="" type="String" />
+      </function>
       <function name="GoToGame" funcname="GoToGame"></function>
       <function name="GoToIdle" funcname="GoToIdle"></function>
+      <function name="GoToLoadingScreen" funcname="GoToLoadingScreen"></function>
     </functions>
     <events>
     </events>

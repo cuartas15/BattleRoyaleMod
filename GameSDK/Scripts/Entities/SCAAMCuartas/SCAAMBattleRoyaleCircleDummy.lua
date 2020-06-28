@@ -74,7 +74,7 @@ function SCAAMBattleRoyaleCircleDummy.Client:SCAAMSetScale(scale)
 end
 
 function SCAAMBattleRoyaleCircleDummy:SetScaleAfterDelay()
-    self:SetWorldScale(tonumber(self.circleScale));
+    self:SetWorldScaleV({x = tonumber(self.circleScale), y = tonumber(self.circleScale), z = 10});
 
     local safeZoneData = {
         Position = self:GetWorldPos(),

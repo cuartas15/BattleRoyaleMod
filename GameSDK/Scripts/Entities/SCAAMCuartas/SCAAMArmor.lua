@@ -81,6 +81,23 @@ function SCAAMArmor:PerformAction(user, action)
     end
 end
 
+function SCAAMArmor:GetContextActions(item2, actions, targetId, targetPartId)
+	table.insert(actions, "Use item");
+
+	return actions;
+end
+
+function SCAAMArmor:PerformContextAction(action, targetId, targetPartId)
+	if (action == "Use item") then
+        self.server:UseItem(self.id, g_localActorId);
+    else
+        local handled = false;
+        local keep = true;
+
+        return handled, keep;
+    end
+end
+
 function SCAAMArmor.Server:OnInit()
     if (not self.bInitialized) then
         self:OnReset();
