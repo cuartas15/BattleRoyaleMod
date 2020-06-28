@@ -1,0 +1,39 @@
+<UIElements name="mod_SCAAMBRMenuUI">
+  <UIElement name="mod_SCAAMBRMenuUI" mouseevents="1" keyevents="1" cursor="1" controller_input="1" render_lockless="1">
+    <GFx file="SCAAMBR/SCAAMBRMenu.gfx" layer="2">
+      <Constraints>
+        <Align mode="dynamic" valign="center" halign="center" scale="1" max="0" />
+      </Constraints>
+    </GFx>
+    <functions>
+      <function name="FillGameData" funcname="FillGameData"></function>
+      <function name="goToScoreboard" funcname="goToScoreboard"></function>
+      <function name="UpdateGameData" funcname="UpdateGameData">
+        <param name="gameData" desc="" type="String" />
+      </function>
+      <function name="FillTopBoardData" funcname="FillTopBoardData"></function>
+      <function name="UpdateMenuData" funcname="UpdateMenuData">
+        <param name="min" desc="" type="String" />
+        <param name="max" desc="" type="String" />
+      </function>
+    </functions>
+    <events>
+      <event name="onGoNextGame" fscommand="goNextGame" desc="To retrieve the next game data"/>
+      <event name="onGoPrevGame" fscommand="goPrevGame" desc="To retrieve the previous game data"/>
+      <event name="onSelectLocation" fscommand="selectLocation" desc="To set the spawn location for the next game"/>
+    </events>
+    <variables>
+      <variable name="GlobalGameData" varname="GlobalGameData"/>
+      <variable name="GlobalPlayerStats" varname="GlobalPlayerStats"/>
+      <variable name="GlobalTopBoard" varname="GlobalTopBoard"/>
+      <variable name="GlobalMapData" varname="GlobalMapData"/>
+      <variable name="currentGame" varname="currentGame"/>
+      <variable name="UpdatedWithoutData" varname="UpdatedWithoutData"/>
+      <variable name="LocationSelected" varname="LocationSelected"/>
+    </variables>
+    <Arrays>
+    </Arrays>
+    <MovieClips>
+    </MovieClips>
+  </UIElement>
+</UIElements>

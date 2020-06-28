@@ -1,0 +1,15 @@
+<item name="SCAAMBattleRoyaleCircle" class="Item" category="any">
+
+	<params>
+		<param name="selectable" value="0"/>
+		<param name="mass" value="0.0"/>
+		<param name="stack_size" value="1"/>
+		<param name="view_dist_min" value="8192"/>
+		<param name="display_name" value="The circle"/>
+		<param name="description" value="You'll Die if you're outside the circle."/>
+	</params>
+
+	<geometry>
+		<thirdperson name="Objects/SCAAMCuartas/BattleRoyaleCircle/battleroyalecircle.cgf"/>
+	</geometry>
+</item>

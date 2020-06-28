@@ -1,0 +1,15 @@
+<item name="SCAAMBattleRoyaleCircleDummy" class="Item" category="any">
+
+	<params>
+		<param name="selectable" value="0"/>
+		<param name="mass" value="0.0"/>
+		<param name="stack_size" value="1"/>
+		<param name="view_dist_min" value="8192"/>
+		<param name="display_name" value="The dummy circle"/>
+		<param name="description" value="A circle indicator for you to go."/>
+	</params>
+
+	<geometry>
+		<thirdperson name="Objects/SCAAMCuartas/BattleRoyaleCircleDummy/battleroyalecircledummy.cgf"/>
+	</geometry>
+</item>

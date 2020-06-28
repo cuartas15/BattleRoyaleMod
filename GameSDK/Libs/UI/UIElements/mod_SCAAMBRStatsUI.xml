@@ -1,0 +1,57 @@
+<UIElements name="mod_SCAAMBRStatsUI">
+  <UIElement name="mod_SCAAMBRStatsUI" mouseevents="0" keyevents="0" cursor="0" controller_input="0" render_lockless="1">
+    <GFx file="SCAAMBR/SCAAMBRStats.gfx" layer="2">
+      <Constraints>
+        <Align mode="dynamic" valign="center" halign="center" scale="1" max="0" />
+      </Constraints>
+    </GFx>
+    <functions>
+      <function name="SetArmor" funcname="SetArmor">
+        <param name="armorValue" desc="" type="String" />
+      </function>
+      <function name="SetArmorCounter" funcname="SetArmorCounter">
+        <param name="counterValue" desc="" type="String" />
+      </function>
+      <function name="SetStimPackCounter" funcname="SetStimPackCounter">
+        <param name="counterValue" desc="" type="String" />
+      </function>
+      <function name="SetPlayerCounter" funcname="SetPlayerCounter">
+        <param name="counterValue" desc="" type="String" />
+      </function>
+      <function name="SetKillCounter" funcname="SetKillCounter">
+        <param name="counterValue" desc="" type="String" />
+      </function>
+      <function name="RestartValues" funcname="RestartValues"></function>
+      <function name="InitGame" funcname="InitGame">
+        <param name="gameData" desc="" type="String" />
+      </function>
+      <function name="ToggleMap" funcname="ToggleMap">
+        <param name="isTurnedOn" desc="" type="Bool" />
+      </function>
+      <function name="ToggleMinMap" funcname="ToggleMinMap">
+        <param name="isTurnedOn" desc="" type="Bool" />
+      </function>
+      <function name="UpdatePlayerPosAndRotation" funcname="UpdatePlayerPosAndRotation">
+        <param name="playerData" desc="" type="String" />
+      </function>
+      <function name="UpdateCirclePosAndScale" funcname="UpdateCirclePosAndScale">
+        <param name="circleData" desc="" type="String" />
+      </function>
+      <function name="UpdateSafeZonePosAndScale" funcname="UpdateSafeZonePosAndScale">
+        <param name="safeZoneData" desc="" type="String" />
+      </function>
+      <function name="CleanIndicators" funcname="CleanIndicators"></function>
+      <function name="GoToGame" funcname="GoToGame"></function>
+      <function name="GoToIdle" funcname="GoToIdle"></function>
+    </functions>
+    <events>
+    </events>
+    <variables>
+      <variable name="MapScale" varname="MapScale"/>
+    </variables>
+    <Arrays>
+    </Arrays>
+    <MovieClips>
+    </MovieClips>
+  </UIElement>
+</UIElements>

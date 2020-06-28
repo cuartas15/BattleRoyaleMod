@@ -1,0 +1,24 @@
+<Material MtlFlags="524544" vertModifType="0">
+ <SubMaterials>
+  <Material Name="Metalframe" MtlFlags="524416" Shader="Illum" GenMask="60000000" StringGenMask="%SPECULAR_MAP%SUBSURFACE_SCATTERING" SurfaceType="mat_metal" MatTemplate="" Diffuse="0.042311415,0.040915202,0.03954624" Specular="0,0,0" Emittance="1,1,1,40" Opacity="1" Shininess="220" vertModifType="0" LayerAct="1">
+   <Textures>
+    <Texture Map="Diffuse" File="objects/scaamcuartas/battleroyalecrate/battleroyalecrate_diff.dds"/>
+    <Texture Map="Specular" File="objects/scaamcuartas/battleroyalecrate/battleroyalecrate_spec.dds"/>
+    <Texture Map="Emittance" File="objects/scaamcuartas/battleroyalecrate/battleroyalecrate_glow.dds"/>
+   </Textures>
+   <PublicParams EmittanceMapGamma="1" SSSIndex="0" IndirectColor="0.25,0.25,0.25"/>
+  </Material>
+  <Material Name="Screen" MtlFlags="526464" Shader="Monitor" GenMask="0" StringGenMask="" SurfaceType="mat_glass_unbreakable" MatTemplate="" Diffuse="1,1,1" Specular="1,1,1" Emittance="1,1,1,23" Opacity="1" Shininess="50" vertModifType="0" LayerAct="1">
+   <Textures>
+    <Texture Map="Diffuse" File="objects/scaamcuartas/battleroyalecrate/battleroyalecratescreen_diff.dds">
+     <TexMod TexMod_RotateType="1" TexMod_TexGenType="0" TexMod_bTexGenProjected="0" OffsetU="1" OffsetV="1"/>
+    </Texture>
+   </Textures>
+   <PublicParams GrainAmount="8" DeformAmount="0.079999998" DeformTillingY="9.3999996" GrainTilling="16" ResolutionX="512" ResolutionY="512" InterlacingTilling="16" Contrast="0" Saturation="7.0300002" DeformTillingX="0" GrainSaturation="1" FresnelScale="1" InterlacingAmount="0.84799999" VSyncFreq="0" PixelVisibility="1" FresnelBias="1" ChromaShift="0" ViewAngle="180" DeformFreq="16"/>
+  </Material>
+  <Material Name="proxy" MtlFlags="525440" Shader="Nodraw" GenMask="0" StringGenMask="" SurfaceType="mat_metal" MatTemplate="" Diffuse="0.80000001,0.80000001,0.80000001" Specular="1,1,1" Opacity="1" Shininess="50" vertModifType="0" LayerAct="1">
+   <Textures />
+  </Material>
+ </SubMaterials>
+ <PublicParams EmittanceMapGamma="1" SSSIndex="0" IndirectColor="0.25,0.25,0.25"/>
+</Material>

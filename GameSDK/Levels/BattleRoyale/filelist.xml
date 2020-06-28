@@ -1,0 +1,7 @@
+<download name="BattleRoyale" type="Map">
+ <index src="filelist.xml" dest="filelist.xml"/>
+ <files>
+  <file src="BattleRoyale.xml" dest="BattleRoyale.xml" size="349" md5="b10575aa395e4c0197126395d493354d"/>
+  <file src="level.pak" dest="level.pak" size="21152218" md5="9b1240319be1a34cd735749ed840d7bf"/>
+ </files>
+</download>

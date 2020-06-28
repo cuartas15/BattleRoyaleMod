@@ -1,0 +1,15 @@
+<item name="SCAAMBattleRoyalePlayerSpawn" class="Item" category="any">
+
+	<params>
+		<param name="selectable" value="0"/>
+		<param name="mass" value="90"/>
+		<param name="stack_size" value="1"/>
+		<param name="view_dist_min" value="1500"/>
+		<param name="display_name" value="BR debug player spawn"/>
+		<param name="description" value="A player spawner for BR, debug thing."/>
+	</params>
+
+	<geometry>
+		<thirdperson name="Objects/SCAAMCuartas/BattleRoyalePlayerSpawn/spawn.cgf"/>
+	</geometry>
+</item>

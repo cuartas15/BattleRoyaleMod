@@ -1,0 +1,15 @@
+<item name="SCAAMBattleRoyaleCrateOpen" class="Item" category="any">
+
+	<params>
+		<param name="selectable" value="0"/>
+		<param name="mass" value="90"/>
+		<param name="stack_size" value="1"/>
+		<param name="view_dist_min" value="1500"/>
+		<param name="display_name" value="The BR crate opened"/>
+		<param name="description" value="A crate to get weapons from but it was opened."/>
+	</params>
+
+	<geometry>
+		<thirdperson name="Objects/SCAAMCuartas/BattleRoyaleCrateOpen/battleroyalecrateopen.cgf"/>
+	</geometry>
+</item>

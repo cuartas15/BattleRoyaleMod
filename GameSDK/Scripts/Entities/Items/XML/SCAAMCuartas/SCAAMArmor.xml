@@ -1,0 +1,20 @@
+<item name="SCAAMArmor" class="Item" category="any">
+
+	<params>
+		<param name="selectable" value="0"/>
+		<param name="mass" value="1"/>
+		<param name="stack_size" value="3"/>
+		<param name="display_name" value="Armor plate"/>
+		<param name="description" value="After a 2s delay, gives 50 armor, press the number 8 for quick use"/>
+	</params>
+
+	<geometry>
+		<thirdperson name="Objects/SCAAMCuartas/ArmorPlate/armor.cgf"/>
+	</geometry>
+
+	<storage>
+		<locations>
+			<location category="any"/>
+		</locations>
+	</storage>
+</item>
