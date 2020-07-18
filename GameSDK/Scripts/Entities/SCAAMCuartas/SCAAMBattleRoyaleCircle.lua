@@ -23,7 +23,9 @@ function SCAAMBattleRoyaleCircle:Expose()
         Class = self,
         ClientMethods = {
             SCAAMSetScale = { RELIABLE_ORDERED, POST_ATTACH, STRING },
-            SCAAMSetPositionScale = { RELIABLE_ORDERED, POST_ATTACH, VEC3, STRING }
+            SCAAMSetPositionScale = { RELIABLE_ORDERED, POST_ATTACH, VEC3, STRING },
+            SCAAMStartCircleShrink = { RELIABLE_ORDERED, POST_ATTACH, STRING, STRING, STRING, VEC3, VEC3, STRING, STRING },
+            SCAAMFinishGame = { RELIABLE_ORDERED, POST_ATTACH }
         },
         ServerMethods = {
         },
@@ -77,7 +79,7 @@ end
 
 function SCAAMBattleRoyaleCircle:SetPositionScaleAfterDelay()
     self:SetWorldPos(self.targetPosition);
-    self:SetWorldScale(tonumber(self.circleScale));
+    self:SetWorldScaleV({x = tonumber(self.circleScale), y = tonumber(self.circleScale), z = 500});
 
     local circleData = {
         Position = self.targetPosition,
@@ -94,6 +96,70 @@ end
 
 function SCAAMBattleRoyaleCircle:SetScaleAfterDelay()
     self:SetWorldScaleV({x = tonumber(self.circleScale), y = tonumber(self.circleScale), z = 500});
+end
+
+function SCAAMBattleRoyaleCircle.Client:SCAAMStartCircleShrink(currentScale, currentScaleDelta, goalScale, currentPos, goalPos, distanceBetweenVectors, circleShrinkTime)
+    self:DoCircleShrink(currentScale, currentScaleDelta, goalScale, currentPos, goalPos, distanceBetweenVectors, circleShrinkTime, true);
+end
+
+function SCAAMBattleRoyaleCircle:DoCircleShrink(currentScale, currentScaleDeltaF, goalScale, currentPos, goalPos, distanceBetweenVectors, circleShrinkTime, firstTime)
+
+    -- Calculates the difference between current and new or target scale
+    local scaleToShrink = tonumber(currentScale) - tonumber(goalScale);
+                
+    -- Calculates the distance the current circle is gonna move towards the new circle per function call, remember this is called 5 times a second so that's why the * 5,
+    -- to make the calculation based on the function's call frequency. Same with the scale
+    local distanceOfVectorsDelta = tonumber(distanceBetweenVectors) / (tonumber(circleShrinkTime) * 5);
+    local scaleToShrinkDelta = scaleToShrink / (tonumber(circleShrinkTime) * 5);
+
+    -- Starts to set the new scale to the circle
+    local currentScaleDelta = 0;
+    if (firstTime == true) then
+        currentScaleDelta = tonumber(currentScaleDeltaF);
+    else
+        currentScaleDelta = tonumber(currentScaleDeltaF) - scaleToShrinkDelta;
+    end
+
+    -- Starts to set the new position to the circle
+    local moveToDirection = {x=0, y=0, z=0};
+    local sumVectors = {x=0, y=0, z=0};
+    local moveToPosition = {x=0, y=0, z=0};
+
+    SubVectors(moveToDirection, goalPos, currentPos);
+    NormalizeVector(moveToDirection);
+    FastScaleVector(sumVectors, moveToDirection, distanceOfVectorsDelta);
+    FastSumVectors(moveToPosition, sumVectors, currentPos);
+
+    -- Sets the new position and scale to the circle in both client and server
+    self.targetPosition = moveToPosition;
+    self.circleScale = currentScaleDelta;
+
+    if (not self.GameFinished and self.circleScale >= tonumber(goalScale)) then
+        local data = {
+            ['currentScale'] = currentScale,
+            ['currentScaleDeltaF'] = currentScaleDelta,
+            ['goalScale'] = goalScale,
+            ['currentPos'] = moveToPosition,
+            ['goalPos'] = goalPos,
+            ['distanceBetweenVectors'] = distanceBetweenVectors,
+            ['circleShrinkTime'] = circleShrinkTime,
+            ['firstTime'] = false
+        };
+
+        self.CircleData = data;
+
+        Script.SetTimerForFunction(200, 'SCAAMBattleRoyaleCircle.RecallSetScaleAndPosAfterDelay', self);
+    end
+
+    self:SetPositionScaleAfterDelay();
+end
+
+function SCAAMBattleRoyaleCircle:RecallSetScaleAndPosAfterDelay()
+    self:DoCircleShrink(self.CircleData.currentScale, self.CircleData.currentScaleDeltaF, self.CircleData.goalScale, self.CircleData.currentPos, self.CircleData.goalPos, self.CircleData.distanceBetweenVectors, self.CircleData.circleShrinkTime, self.CircleData.firstTime);
+end
+
+function SCAAMBattleRoyaleCircle.Client:SCAAMFinishGame()
+    self.GameFinished = true;
 end
 
 function SCAAMBattleRoyaleCircle.Server:OnHit(hit)

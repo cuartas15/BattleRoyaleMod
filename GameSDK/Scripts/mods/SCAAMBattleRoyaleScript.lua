@@ -16,15 +16,14 @@ RegisterCallback(_G,
             -- Do nothing
         end
 
-        -- if _G["PatchVars"] then
-        --     Log("Setup DEBUG Vars");
-        --     PatchVars({
-        --         ["g_debugRMI"] = 1,
-        --         ["log_Verbosity"] = 4,
-        --         ["net_log_remote_methods"] = 1,
-        --         ['g_useNetSyncToSpeedUpRMIs'] = 1,
-        --         ['net_disconnect_on_rmi_error'] = 1
-        --     });
-        -- end
+        if _G["PatchVars"] then
+            Log("Setup DEBUG Vars");
+            PatchVars({
+                ["g_debugRMI"] = 1,
+                ["log_Verbosity"] = 4,
+                ["net_log_remote_methods"] = 1,
+                ['net_disconnect_on_rmi_error'] = 0
+            });
+        end
     end
 );

@@ -1,0 +1,15 @@
+<item name="SCAAMBattleRoyaleCarSpawn" class="Item" category="any">
+
+	<params>
+		<param name="selectable" value="0"/>
+		<param name="mass" value="90"/>
+		<param name="stack_size" value="1"/>
+		<param name="view_dist_min" value="1500"/>
+		<param name="display_name" value="The BR debug car spawn"/>
+		<param name="description" value="A car spawner, debug thing."/>
+	</params>
+
+	<geometry>
+		<thirdperson name="Objects/SCAAMCuartas/BattleRoyaleCarSpawn/spawn.cgf"/>
+	</geometry>
+</item>

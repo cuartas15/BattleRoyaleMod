@@ -1,4 +1,4 @@
--- SCAAM Battle Royale Mod v1.1
+-- SCAAM Battle Royale Mod v1.2
 -- Created by Cuartas
 
 -- Dear Modder: Almost everything was commented step by step for you to easily understand what
@@ -8,7 +8,7 @@
 -- Don't hesitate to provide feedback or bug reports in case you encounter an issue.
 -- Happy modding!
 
-SCAAMBRVersion = '1.1';
+SCAAMBRVersion = '1.2';
 
 -- Loading all the custom entities
 Script.LoadScript('Scripts/Entities/SCAAMCuartas/SCAAMBattleRoyaleCircle.lua');
@@ -19,6 +19,7 @@ Script.LoadScript('Scripts/Entities/SCAAMCuartas/SCAAMStimPack.lua');
 Script.LoadScript('Scripts/Entities/SCAAMCuartas/SCAAMArmor.lua');
 
 -- The debug spawners
+Script.LoadScript('Scripts/Entities/SCAAMCuartas/SCAAMBattleRoyaleCarSpawn.lua');
 Script.LoadScript('Scripts/Entities/SCAAMCuartas/SCAAMBattleRoyaleConfigSpawn.lua');
 Script.LoadScript('Scripts/Entities/SCAAMCuartas/SCAAMBattleRoyaleCircleSpawn.lua');
 Script.LoadScript('Scripts/Entities/SCAAMCuartas/SCAAMBattleRoyaleGroundSpawn.lua');
@@ -149,37 +150,43 @@ SCAAMBattleRoyaleProperties = {
         DummyCircleId = nil, -- EntityId of the dummy circle spawned for this phase
         Position = {}, -- Position of the dummy circle
         DistanceBetweenVectors = 0, -- Distance between the circle at the end of the previous phase and the dummy circle
-        DisplayedMessage = false -- Checking if the 'Circle is closing in' message was displayed so it does it only once
+        DisplayedMessage = false, -- Checking if the 'Circle is closing in' message was displayed so it does it only once
+        StartedShrink = false -- Checking if the circle has started shrinking for this phase
     },
     ['Phase2'] = {
         DummyCircleId = nil,
         Position = {},
         DistanceBetweenVectors = 0,
-        DisplayedMessage = false
+        DisplayedMessage = false,
+        StartedShrink = false
     },
     ['Phase3'] = {
         DummyCircleId = nil,
         Position = {},
         DistanceBetweenVectors = 0,
-        DisplayedMessage = false
+        DisplayedMessage = false,
+        StartedShrink = false
     },
     ['Phase4'] = {
         DummyCircleId = nil,
         Position = {},
         DistanceBetweenVectors = 0,
-        DisplayedMessage = false
+        DisplayedMessage = false,
+        StartedShrink = false
     },
     ['Phase5'] = {
         DummyCircleId = nil,
         Position = {},
         DistanceBetweenVectors = 0,
-        DisplayedMessage = false
+        DisplayedMessage = false,
+        StartedShrink = false
     },
     ['Phase6'] = {
         DummyCircleId = nil,
         Position = {},
         DistanceBetweenVectors = 0,
-        DisplayedMessage = false
+        DisplayedMessage = false,
+        StartedShrink = false
     }
 };
 
@@ -295,7 +302,7 @@ else
 end
 
 -- Copy the original Battle royale properties for each fresh game
-SCAAMBattleRoyalePropertiesBackup = SCAAMBRShallowCopy(SCAAMBattleRoyaleProperties);
+SCAAMBattleRoyalePropertiesBackup = new(SCAAMBattleRoyaleProperties);
 
 -- Player and game properties, for now it controls if the BR script was initialized 
 SCAAMBattleRoyalePlayerManagement = {
@@ -1004,6 +1011,79 @@ else
     };
 end
 
+-- Car spawns, for now there's gonna be quadbike spawns
+
+-- Editor or server specific actions
+if (System.IsEditor()) then
+    SCAAMBRCarProperties = {
+        Positions = {
+            {Position = {x = 340, y = 600, z = 17}},
+            {Position = {x = 350, y = 590, z = 17}}
+        }
+    }
+else
+    SCAAMBRCarProperties = {
+        Positions = {
+            {Position = {x = 320.13, y = 466.805, z = 45.4935}},
+            {Position = {x = 393.687, y = 281.196, z = 32.6598}},
+            {Position = {x = 608.662, y = 349.127, z = 52.95}},
+            {Position = {x = 785.092, y = 293.779, z = 50.3}},
+            {Position = {x = 977.725, y = 312.386, z = 51.3}},
+            {Position = {x = 1142.69, y = 283.245, z = 52.45}},
+            {Position = {x = 1204.82, y = 433.97, z = 48.0606}},
+            {Position = {x = 1438.3, y = 434.877, z = 37.6696}},
+            {Position = {x = 1672.37, y = 454.055, z = 51.3685}},
+            {Position = {x = 1836.59, y = 633.07, z = 51.7}},
+            {Position = {x = 1844.34, y = 704.13, z = 51.7}},
+            {Position = {x = 1768.44, y = 876.091, z = 51.9}},
+            {Position = {x = 1902.92, y = 954.609, z = 42.8391}},
+            {Position = {x = 1699.21, y = 1031.69, z = 51.6375}},
+            {Position = {x = 1462.61, y = 1066.01, z = 58.5693}},
+            {Position = {x = 1536.77, y = 1246.99, z = 56.3115}},
+            {Position = {x = 1673.85, y = 1413.78, z = 56.839}},
+            {Position = {x = 1755.87, y = 1601.47, z = 45.0596}},
+            {Position = {x = 1545.08, y = 1672.45, z = 51.45}},
+            {Position = {x = 1396.73, y = 1781.65, z = 28.45}},
+            {Position = {x = 1232.23, y = 1642.55, z = 52.7}},
+            {Position = {x = 1050.01, y = 1675.76, z = 51.25}},
+            {Position = {x = 920.357, y = 1833.98, z = 52.2}},
+            {Position = {x = 833.697, y = 1635.33, z = 51.5349}},
+            {Position = {x = 668.25, y = 1624.17, z = 48.0125}},
+            {Position = {x = 480.6, y = 1531.56, z = 51.6}},
+            {Position = {x = 325.68, y = 1512.22, z = 51.1}},
+            {Position = {x = 286.4, y = 1493.54, z = 51.1}},
+            {Position = {x = 297.786, y = 1330.83, z = 51.45}},
+            {Position = {x = 356.499, y = 1132.81, z = 60.5437}},
+            {Position = {x = 309.25, y = 961.053, z = 53.0026}},
+            {Position = {x = 373.637, y = 826.973, z = 56.2013}},
+            {Position = {x = 343.85, y = 649.737, z = 53.25}},
+            {Position = {x = 501.568, y = 956.713, z = 73.0496}},
+            {Position = {x = 652.679, y = 1044.29, z = 78.3661}},
+            {Position = {x = 695.643, y = 1236.46, z = 57.2039}},
+            {Position = {x = 796.958, y = 1432.89, z = 51.2446}},
+            {Position = {x = 855.644, y = 1534.68, z = 51.45}},
+            {Position = {x = 998.465, y = 1516.23, z = 52.95}},
+            {Position = {x = 965.185, y = 1334.33, z = 48.7337}},
+            {Position = {x = 1004.19, y = 1149.57, z = 48.2}},
+            {Position = {x = 759.262, y = 1094.41, z = 60.1869}},
+            {Position = {x = 1225.63, y = 1342.77, z = 53.5616}},
+            {Position = {x = 1097.79, y = 1509.98, z = 55.4204}},
+            {Position = {x = 469.687, y = 1089.24, z = 110.288}},
+            {Position = {x = 626.364, y = 800.494, z = 98.8929}},
+            {Position = {x = 628.329, y = 721.534, z = 97.15}},
+            {Position = {x = 1149.29, y = 519.309, z = 48.5546}},
+            {Position = {x = 1206.41, y = 599.634, z = 47.85}},
+            {Position = {x = 1113.35, y = 963.025, z = 102.25}},
+            {Position = {x = 1156.35, y = 960.165, z = 102.25}},
+            {Position = {x = 565.184, y = 1004.31, z = 80.65}},
+            {Position = {x = 782.95, y = 599.71, z = 52.833}},
+            {Position = {x = 742.513, y = 929.012, z = 115.65}},
+            {Position = {x = 1012.6, y = 924.256, z = 104.95}},
+            {Position = {x = 1441.57, y = 1414.4, z = 90.2485}}
+        }
+    };
+end
+
 -- Crate properties, including position, direction and item sets per phase
 
 -- Editor or server specific actions
@@ -1198,7 +1278,7 @@ else
             {Position = {x = 574.604, y = 739.019, z = 97.65}, Direction = {x = -0.052336, y = -0.99863, z = 0}},
             {Position = {x = 961.221, y = 1835.02, z = 57.3236}, Direction = {x = -0.927184, y = -0.374606, z = 0}},
             {Position = {x = 1007.33, y = 1630.92, z = 63.5249}, Direction = {x = 0.438371, y = 0.898794, z = 0}},
-            {Position = {x = 1204.27, y = 1578.76, z = 78.617}, Direction = {x = -0.819152, y = -0.573576, z = 0}},
+            {Position = {x = 1204.27, y = 1578.76, z = 78.7789}, Direction = {x = -0.819152, y = -0.573576, z = 0}},
             {Position = {x = 1415.74, y = 1758.11, z = 33.1788}, Direction = {x = -0.156434, y = -0.987688, z = 0}},
             {Position = {x = 1064.04, y = 1695.65, z = 50.4664}, Direction = {x = -0.52992, y = -0.848048, z = 0}},
             {Position = {x = 803.254, y = 1623.51, z = 51.5635}, Direction = {x = -0.121869, y = 0.992546, z = 0}},
@@ -2996,9 +3076,9 @@ SCAAMBRItemCategories = {
             {Item = 'CraftedShortRifle556_jack', Ammo = '556x45_magazine', Spawner = 'Ground'}
         },
         RandomShotgun = {
-            -- {Item = 'AA12_jack_green', Ammo = 'Slug_12gauge_magazine', Spawner = 'Ground,Phase1,Phase2'},
-            -- {Item = 'AA12_jack_blue', Ammo = 'Slug_12gauge_magazine', Spawner = 'Phase1,Phase2,Phase3'},
-            -- {Item = 'AA12_jack_gold', Ammo = 'Slug_12gauge_magazine', Spawner = 'Phase2,Phase3'},
+            {Item = 'AA12_jack_green', Ammo = 'Slug_12gauge_magazine', Spawner = 'Ground,Phase1,Phase2'},
+            {Item = 'AA12_jack_blue', Ammo = 'Slug_12gauge_magazine', Spawner = 'Phase1,Phase2,Phase3'},
+            {Item = 'AA12_jack_gold', Ammo = 'Slug_12gauge_magazine', Spawner = 'Phase2,Phase3'},
             {Item = 'Rem870_jack_green', Ammo = 'Pile_12GaugeSlug', Spawner = 'Ground,Phase1,Phase2'},
             {Item = 'Rem870_jack_blue', Ammo = 'Pile_12GaugeSlug', Spawner = 'Phase1,Phase2,Phase3'},
             {Item = 'Rem870_jack_gold', Ammo = 'Pile_12GaugeSlug', Spawner = 'Phase2,Phase3'},
@@ -3386,6 +3466,9 @@ SCAAMBRGroundItemsProperties.RandomContent = generatedSpawnTables[2];
 
 -- All the spawnable classnames for cleanup use
 SCAAMBREntityClasses = {
+    -- Vehicles
+    'quadbike',
+
     -- Crates
     'SCAAMBattleRoyaleCrate',
     'SCAAMBattleRoyaleCrateOpen',
@@ -3484,6 +3567,7 @@ end
 -- SCAAMBRGetSpawners
 -- Grabs all the custom spawner entities scattered around the map to get their positions and directions
 function SCAAMBRGetSpawners()
+    local carPositions = {};
     local cratePositions = {};
     local groundPositions = {};
     local lobbyPositions = {};
@@ -3491,6 +3575,7 @@ function SCAAMBRGetSpawners()
     local playerPositions = {};
     local mapConfig = System.GetEntitiesByClass('SCAAMBattleRoyaleConfigSpawn');
     local mapCircle = System.GetEntitiesByClass('SCAAMBattleRoyaleCircleSpawn');
+    local listOfCars = System.GetEntitiesByClass('SCAAMBattleRoyaleCarSpawn');
     local listOfCrates = System.GetEntitiesByClass('SCAAMBattleRoyaleCrateSpawn');
     local listOfGround = System.GetEntitiesByClass('SCAAMBattleRoyaleGroundSpawn');
     local listOfLobby = System.GetEntitiesByClass('SCAAMBattleRoyaleLobbySpawn');
@@ -3567,6 +3652,22 @@ function SCAAMBRGetSpawners()
 
             System.RemoveEntity(item.id);
             break;
+        end
+    end
+
+    -- Loops through the list of all the cars to get their position and direction, then despawn them
+    if (listOfCars ~= nil and type(listOfCars) == 'table' and table.getn(listOfCars) > 0) then
+        for key, item in pairs(listOfCars) do
+            local carData = {
+                Position = item:GetWorldPos()
+            };
+            table.insert(carPositions, carData);
+            System.RemoveEntity(item.id);
+        end
+        
+        -- Checks if the table has something, otherwise just use the default spawner values
+        if (table.getn(carPositions) > 0) then
+            SCAAMBRCarProperties.Positions = carPositions;
         end
     end
 
@@ -3667,7 +3768,7 @@ function SCAAMBRGetSpawners()
         end
     end
 
-    SCAAMBattleRoyaleProperties = SCAAMBRShallowCopy(SCAAMBattleRoyalePropertiesBackup);
+    SCAAMBattleRoyaleProperties = new(SCAAMBattleRoyalePropertiesBackup);
 end
 
 -- SCAAMBRInitGame
@@ -3675,7 +3776,7 @@ end
 function SCAAMBRInitGame(circleId)
 
     -- Init or resets the game properties for the next game
-    SCAAMBattleRoyaleProperties = SCAAMBRShallowCopy(SCAAMBattleRoyalePropertiesBackup);
+    SCAAMBattleRoyaleProperties = new(SCAAMBattleRoyalePropertiesBackup);
     SCAAMBattleRoyaleProperties.circleId = circleId;
 
     -- Prepare the circle entity for the initial phase
@@ -3994,8 +4095,39 @@ end
 -- SCAAMBRSpawnGameItems
 -- Spawns the items for the game in random selected positions
 function SCAAMBRSpawnGameItems()
-  
-    -- Gets the count of the 50% of the total possible positions, so there's gonna be places that will have spawns
+
+    -- Gets the count of the 30 - 50% of the total possible car positions, so there's gonna be places that will have spawns
+    -- and some places that don't in a random behaviour
+    local carPositionsFractionCount = math.floor(table.getn(SCAAMBRCarProperties.Positions) * randomF(0.3, 0.5));
+
+    -- Makes a copy of the positions of the car tables
+    local carPositionsCopy = SCAAMBRShallowCopy(SCAAMBRCarProperties.Positions);
+
+    -- Loops through the car count to spawn a car
+    while (carPositionsFractionCount > 0) do
+        local spawner = table.remove(carPositionsCopy, math.random(table.getn(carPositionsCopy)));
+
+        local spawnParams = {};
+        spawnParams.class = 'quadbike';
+        spawnParams.position = spawner.Position;
+
+        vehicle = System.SpawnEntity(spawnParams);
+        local JSONText = '{"skin":"","dieselfuel":1000000,"oil":600000,"is":{"cats":[]}}';
+        vehicle.vehicle:ReadOrRestoreJSON(true, JSONText);
+        ISM.GiveItem(vehicle.id, 'SparkPlugs', false, vehicle.id, 'sparkplugs00');
+        ISM.GiveItem(vehicle.id, 'DriveBelt', false, vehicle.id, 'drivebelt00');
+        ISM.GiveItem(vehicle.id, 'CarBattery', false, vehicle.id, 'carbattery00');
+        ISM.GiveItem(vehicle.id, 'Wheel', false, vehicle.id, 'wheel00');
+        ISM.GiveItem(vehicle.id, 'Wheel', false, vehicle.id, 'wheel01');
+        ISM.GiveItem(vehicle.id, 'Wheel', false, vehicle.id, 'wheel02');
+        ISM.GiveItem(vehicle.id, 'Wheel', false, vehicle.id, 'wheel03');
+        ISM.GiveItem(vehicle.id, 'Wheel', false, vehicle.id, 'wheel04');
+        ISM.GiveItem(vehicle.id, 'Wheel', false, vehicle.id, 'wheel05');
+
+        carPositionsFractionCount = carPositionsFractionCount - 1;
+    end
+
+    -- Gets the count of the 50 - 60% of the total possible crate positions and 30 - 50% of ground ones, so there's gonna be places that will have spawns
     -- and some places that don't in a random behaviour
     local cratePositionsFractionCount = math.floor(table.getn(SCAAMBRCrateProperties.Positions) * randomF(0.5, 0.6));
     local groundPositionsFractionCount = math.floor(table.getn(SCAAMBRGroundItemsProperties.Positions) * randomF(0.3, 0.5));
@@ -4734,7 +4866,7 @@ end
 -- SCAAMBRStartCircleCounter
 -- A simple caller for updates so the functions based on time are managed properly
 function SCAAMBRStartCircleCounter(circle)
-    Script.SetTimerForFunction(100, 'SCAAMBRCircleLoop', circle);
+    Script.SetTimerForFunction(200, 'SCAAMBRCircleLoop', circle);
 end
 
 -- SCAAMBRCircleLoop
@@ -4745,9 +4877,9 @@ function SCAAMBRCircleLoop(circle)
     -- to die by the circle anyways
     if (SCAAMBattleRoyaleProperties.CurrentPhase <= SCAAMBattleRoyaleProperties.GamePhases) then
 
-        -- This function is called 10 times per second so the timer increments by a 100ms for each function call
-        SCAAMBattleRoyaleProperties.CurrentTimer = SCAAMBattleRoyaleProperties.CurrentTimer + 0.1;
-        SCAAMBattleRoyaleProperties.TotalTime = SCAAMBattleRoyaleProperties.TotalTime + 0.1;
+        -- This function is called 5 times per second so the timer increments by a 200ms for each function call
+        SCAAMBattleRoyaleProperties.CurrentTimer = SCAAMBattleRoyaleProperties.CurrentTimer + 0.2;
+        SCAAMBattleRoyaleProperties.TotalTime = SCAAMBattleRoyaleProperties.TotalTime + 0.2;
 
         -- Calculates the total time of the phase (cooldown time and circle closing in time)
         local totalPhaseTimeSum = SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].CooldownTime + SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].CircleShrinkTime;
@@ -4781,7 +4913,7 @@ function SCAAMBRCircleLoop(circle)
                 end
             end
 
-            SCAAMBattleRoyaleProperties.CoolSoundTimer = SCAAMBattleRoyaleProperties.CoolSoundTimer - 100;
+            SCAAMBattleRoyaleProperties.CoolSoundTimer = SCAAMBattleRoyaleProperties.CoolSoundTimer - 200;
         end
 
         -- If the timer surpasses the cooldown time, the circle starts to shrink among other things
@@ -4810,11 +4942,10 @@ function SCAAMBRCircleLoop(circle)
                 -- Calculates the difference between current and new or target scale
                 local scaleToShrink = SCAAMBattleRoyaleProperties.CurrentScale - SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].NewScale;
                 
-                -- Calculates the distance the current circle is gonna move towards the new circle per function call, remember this is called 10 times a second so that's why the * 10, to make the calculation
-                -- based on the function's call frequency
-                -- Same with the scale
-                local distanceOfVectorsDelta = SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].DistanceBetweenVectors / (SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].CircleShrinkTime * 10);
-                local scaleToShrinkDelta = scaleToShrink / (SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].CircleShrinkTime * 10);
+                -- Calculates the distance the current circle is gonna move towards the new circle per function call, remember this is called 5 times a second so that's why the * 5,
+                -- to make the calculation based on the function's call frequency. Same with the scale
+                local distanceOfVectorsDelta = SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].DistanceBetweenVectors / (SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].CircleShrinkTime * 5);
+                local scaleToShrinkDelta = scaleToShrink / (SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].CircleShrinkTime * 5);
 
                 -- Starts to set the new scale to the circle
                 SCAAMBattleRoyaleProperties.CurrentScaleDelta = SCAAMBattleRoyaleProperties.CurrentScaleDelta - scaleToShrinkDelta;
@@ -4832,12 +4963,33 @@ function SCAAMBRCircleLoop(circle)
                 -- Sets the new position and scale to the circle in both client and server
                 circle:SetWorldPos(moveToPosition);
                 circle:SetWorldScale(SCAAMBattleRoyaleProperties.CurrentScaleDelta);
+
+                -- if (SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].StartedShrink == false) then
+                --     circle.allClients:SCAAMStartCircleShrink(
+                --         tostring(SCAAMBattleRoyaleProperties.CurrentScale),
+                --         tostring(SCAAMBattleRoyaleProperties.CurrentScaleDelta),
+                --         tostring(SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].NewScale),
+                --         circle:GetWorldPos(),
+                --         SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].Position,
+                --         tostring(SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].DistanceBetweenVectors),
+                --         tostring(SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].CircleShrinkTime)
+                --     );
+
+                --     SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].StartedShrink = true;
+                -- end
+
+                -- Log('server circleScale is: ' .. SCAAMBattleRoyaleProperties.CurrentScaleDelta);
                 circle.allClients:SCAAMSetPositionScale(moveToPosition, tostring(SCAAMBattleRoyaleProperties.CurrentScaleDelta));
             else
                 
                 -- It gets here when the total phase time is ended so it goes to the next phase
                 -- Removes the current safe zone circle
                 System.RemoveEntity(SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].DummyCircleId);
+
+                -- Syncs the circle position and scale to all clients
+                circle.allClients:SCAAMSetPositionScale(SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].Position, tostring(SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].NewScale));
+                circle:SetWorldPos(SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].Position);
+                circle:SetWorldScale(tostring(SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].NewScale));
 
                 -- Resets the timers and sets properties for the new phase
                 SCAAMBattleRoyaleProperties.CurrentScale = SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].NewScale;
@@ -4874,7 +5026,7 @@ function SCAAMBRCircleLoop(circle)
     end
 
     -- Calculates a second so it checks things each second, like if the player is in the circle
-    SCAAMBattleRoyaleProperties.CheckForSecondPassed = SCAAMBattleRoyaleProperties.CheckForSecondPassed + 100;
+    SCAAMBattleRoyaleProperties.CheckForSecondPassed = SCAAMBattleRoyaleProperties.CheckForSecondPassed + 200;
     if (SCAAMBattleRoyaleProperties.CheckForSecondPassed >= 1000) then
         SCAAMBattleRoyaleProperties.CheckForSecondPassed = 0;
 
@@ -4950,6 +5102,9 @@ function SCAAMBRCheckPlayers(circle, radius)
 
         -- Updates the top 15 data
         SCAAMBRTopFifteen = SCAAMBRGetTopFifteen();
+
+        -- Stops the circle from updating if that's the case
+        -- circle.allClients:SCAAMFinishGame();
 
         -- Updates the menu UI data on all players
         SCAAMBRUpdateMenuDataGlobally();
@@ -5044,6 +5199,9 @@ function SCAAMBRCheckPlayers(circle, radius)
 
         SCAAMBRPlayerDatabase:SetPage(playerSteamID, playerPersistentData);
 
+        -- Stops the circle from updating if that's the case
+        -- circle.allClients:SCAAMFinishGame();
+
         -- Updates the menu UI data on all players
         SCAAMBRUpdateMenuDataGlobally();
 
@@ -5080,6 +5238,7 @@ function SCAAMBRCheckPlayers(circle, radius)
                 -- Checks if there's any changes in the player numbers, generally because someone disconnected
                 if (playersPlaying ~= SCAAMBattleRoyaleProperties.CurrentPlayers) then
                     player.onClient:SCAAMBRChangeTheStates(playerChannel, 'setplayercounter', tostring(playersPlaying));
+                    SCAAMBattleRoyaleProperties.CurrentPlayers = PlayersPlaying;
                 end
                 
                 -- If the distance is greater than the radius AKA the circle's scale, then the player is outside
@@ -5094,6 +5253,11 @@ function SCAAMBRCheckPlayers(circle, radius)
                     SCAAMBRProcessDamage(player, true);
                 end
             end
+        end
+
+        -- Sets the server player counter to the actual number
+        if (playersPlaying ~= SCAAMBattleRoyaleProperties.CurrentPlayers) then
+            SCAAMBattleRoyaleProperties.CurrentPlayers = PlayersPlaying;
         end
     end
 end
@@ -5315,10 +5479,23 @@ function SCAAMBRPlayerGeneralUpdate(dummyVar)
             end
         end
 
-        local playerAngles = player:GetAngles();
+        -- Determines position and rotation based on the player or the vehicle the player is on
+        local position = {};
+        local playerAngles = {};
+
+        local vehicleId = player.actor:GetLinkedVehicleId();
+
+        if (vehicleId) then
+            local vehicle = System.GetEntity(vehicleId);
+            position = vehicle:GetWorldPos();
+            playerAngles = vehicle:GetAngles();
+        else
+            position = player:GetWorldPos();
+            playerAngles = player:GetAngles();
+        end
 
         local playerData = {
-            Position = player:GetWorldPos(),
+            Position = position,
             Rotation = playerAngles.z * 180/g_Pi
         }
 
@@ -6027,7 +6204,7 @@ function SCAAMBRManageMenu(keyString)
                 if (player.SCAAMBRMenuState == 'idle') then
 
                     -- Checks if the inventory menu is not opened
-                    if (ActionMapManager.IsFilterEnabled('inventory') == false) then
+                    if (ActionMapManager.IsFilterEnabled('only_ui') == false and ActionMapManager.IsFilterEnabled('inventory') == false) then
                         player.server:SCAAMBRGetTheMenuDat(g_localActorId, '');
                     end
                 else
@@ -6498,62 +6675,65 @@ RegisterCallbackReturnAware(
     nil,
     function (self, ret, playerId)
 
-        -- Initializes the BR scripts when the first player ever connects to the server
-        if (SCAAMBattleRoyalePlayerManagement.HasTheScriptInitialized == false) then
+        -- Server only function
+        if (not System.IsEditor()) then
+            -- Initializes the BR scripts when the first player ever connects to the server
+            if (SCAAMBattleRoyalePlayerManagement.HasTheScriptInitialized == false) then
 
-            -- Sets the time and weather to a permantent 14:00 time and ClearSky
-            System.ExecuteCommand('wm_forceTime 14');
-            System.ExecuteCommand('wm_pattern 1');
-            System.ExecuteCommand('g_playerInfiniteStamina 1');
+                -- Sets the time and weather to a permantent 14:00 time and ClearSky
+                System.ExecuteCommand('wm_forceTime 14');
+                System.ExecuteCommand('wm_pattern 1');
+                System.ExecuteCommand('g_playerInfiniteStamina 1');
 
-            -- Calls the function to get the general spawners
-            SCAAMBRGetSpawners();
-            
-            -- Editor or server specific actions
-            if (not System.IsEditor()) then
+                -- Calls the function to get the general spawners
+                SCAAMBRGetSpawners();
+                
+                -- Editor or server specific actions
+                if (not System.IsEditor()) then
 
-                -- Sets the Battle Royale for the first time
-                SCAAMBRSitAndRelax();
+                    -- Sets the Battle Royale for the first time
+                    SCAAMBRSitAndRelax();
+                end
+
+                SCAAMBattleRoyalePlayerManagement.HasTheScriptInitialized = true;
             end
 
-            SCAAMBattleRoyalePlayerManagement.HasTheScriptInitialized = true;
-        end
+            local player = System.GetEntity(playerId);
 
-        local player = System.GetEntity(playerId);
+            if (player and player.player) then
 
-        if (player and player.player) then
+                -- Restarts the player selected spawn point
+                player.SCAAMBRSpawnPoint = nil;
 
-            -- Restarts the player selected spawn point
-            player.SCAAMBRSpawnPoint = nil;
+                -- Sets the player state to be InLobby
+                player.SCAAMBRState = 'InLobby';
 
-            -- Sets the player state to be InLobby
-            player.SCAAMBRState = 'InLobby';
+                -- Set the special item usage flags
+                player.SCAAMBRIsApplyingStimPack = false;
+                player.SCAAMBRIsApplyingArmor = false;
 
-            -- Set the special item usage flags
-            player.SCAAMBRIsApplyingStimPack = false;
-            player.SCAAMBRIsApplyingArmor = false;
+                -- Sets the armor to 0
+                player.SCAAMBRArmor = 0;
 
-            -- Sets the armor to 0
-            player.SCAAMBRArmor = 0;
+                -- Sets the kill count to 0
+                player.SCAAMBRKills = 0;
 
-            -- Sets the kill count to 0
-            player.SCAAMBRKills = 0;
+                -- Sets the damage dealt to 0
+                player.SCAAMBRDamageDealt = 0;
 
-            -- Sets the damage dealt to 0
-            player.SCAAMBRDamageDealt = 0;
+                -- Assign custom BR keybinds to players
+                local playerChannel = player.actor:GetChannel();
+                player.onClient:SCAAMBRInitThePlayer(playerChannel);
 
-            -- Assign custom BR keybinds to players
-            local playerChannel = player.actor:GetChannel();
-            player.onClient:SCAAMBRInitThePlayer(playerChannel);
+                -- Inits the custom UI support for players
+                player.onClient:SCAAMBRUIInit(playerChannel);
+                
+                -- Tries to teleport the player to a lobby spawn in hopes to fix the issue with the freeze
+                player:SetWorldPos(SCAAMBRLobbyProperties.Positions[math.random(table.getn(SCAAMBRLobbyProperties.Positions))].Position);
 
-            -- Inits the custom UI support for players
-            player.onClient:SCAAMBRUIInit(playerChannel);
-            
-            -- Tries to teleport the player to a lobby spawn in hopes to fix the issue with the freeze
-            player:SetWorldPos(SCAAMBRLobbyProperties.Positions[math.random(table.getn(SCAAMBRLobbyProperties.Positions))].Position);
-
-            -- Removes all items from the player after a delay
-            Script.SetTimerForFunction(SCAAMBattleRoyalePlayerManagement.WaitingTimer, 'SCAAMBRCleanPlayerAfterDelay', {PlayerId = playerId});
+                -- Removes all items from the player after a delay
+                Script.SetTimerForFunction(SCAAMBattleRoyalePlayerManagement.WaitingTimer, 'SCAAMBRCleanPlayerAfterDelay', {PlayerId = playerId});
+            end
         end
 
         return ret;
@@ -6566,6 +6746,68 @@ RegisterCallbackReturnAware(
     'RevivePlayer',
     nil,
     function (self, ret, playerId)
+
+        -- Editor only function
+        if (System.IsEditor()) then
+            -- Initializes the BR scripts when the first player ever connects to the server
+            if (SCAAMBattleRoyalePlayerManagement.HasTheScriptInitialized == false) then
+
+                -- Sets the time and weather to a permantent 14:00 time and ClearSky
+                System.ExecuteCommand('wm_forceTime 14');
+                System.ExecuteCommand('wm_pattern 1');
+                System.ExecuteCommand('g_playerInfiniteStamina 1');
+
+                -- Calls the function to get the general spawners
+                SCAAMBRGetSpawners();
+                
+                -- Editor or server specific actions
+                if (not System.IsEditor()) then
+
+                    -- Sets the Battle Royale for the first time
+                    SCAAMBRSitAndRelax();
+                end
+
+                SCAAMBattleRoyalePlayerManagement.HasTheScriptInitialized = true;
+            end
+
+            local player = System.GetEntity(playerId);
+
+            if (player and player.player) then
+
+                -- Restarts the player selected spawn point
+                player.SCAAMBRSpawnPoint = nil;
+
+                -- Sets the player state to be InLobby
+                player.SCAAMBRState = 'InLobby';
+
+                -- Set the special item usage flags
+                player.SCAAMBRIsApplyingStimPack = false;
+                player.SCAAMBRIsApplyingArmor = false;
+
+                -- Sets the armor to 0
+                player.SCAAMBRArmor = 0;
+
+                -- Sets the kill count to 0
+                player.SCAAMBRKills = 0;
+
+                -- Sets the damage dealt to 0
+                player.SCAAMBRDamageDealt = 0;
+
+                -- Assign custom BR keybinds to players
+                local playerChannel = player.actor:GetChannel();
+                player.onClient:SCAAMBRInitThePlayer(playerChannel);
+
+                -- Inits the custom UI support for players
+                player.onClient:SCAAMBRUIInit(playerChannel);
+                
+                -- Tries to teleport the player to a lobby spawn in hopes to fix the issue with the freeze
+                player:SetWorldPos(SCAAMBRLobbyProperties.Positions[math.random(table.getn(SCAAMBRLobbyProperties.Positions))].Position);
+
+                -- Removes all items from the player after a delay
+                Script.SetTimerForFunction(SCAAMBattleRoyalePlayerManagement.WaitingTimer, 'SCAAMBRCleanPlayerAfterDelay', {PlayerId = playerId});
+            end
+        end
+
         return ret;
     end
 );
