@@ -1,6 +1,7 @@
 <download name="BattleRoyale" type="Map">
  <index src="filelist.xml" dest="filelist.xml"/>
  <files>
-  <file src="level.pak" dest="level.pak" size="21207107" md5="2bcb1abdf096850a0d1abb7608ff7cd9"/>
+  <file src="battleroyale.xml" dest="battleroyale.xml" size="349" md5="b10575aa395e4c0197126395d493354d"/>
+  <file src="level.pak" dest="level.pak" size="21167401" md5="db670469d1a453d7fe5ffb2f5c104288"/>
  </files>
 </download>

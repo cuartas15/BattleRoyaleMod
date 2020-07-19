@@ -4121,8 +4121,6 @@ function SCAAMBRSpawnGameItems()
         ISM.GiveItem(vehicle.id, 'Wheel', false, vehicle.id, 'wheel01');
         ISM.GiveItem(vehicle.id, 'Wheel', false, vehicle.id, 'wheel02');
         ISM.GiveItem(vehicle.id, 'Wheel', false, vehicle.id, 'wheel03');
-        ISM.GiveItem(vehicle.id, 'Wheel', false, vehicle.id, 'wheel04');
-        ISM.GiveItem(vehicle.id, 'Wheel', false, vehicle.id, 'wheel05');
 
         carPositionsFractionCount = carPositionsFractionCount - 1;
     end
@@ -4989,7 +4987,7 @@ function SCAAMBRCircleLoop(circle)
                 -- Syncs the circle position and scale to all clients
                 circle.allClients:SCAAMSetPositionScale(SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].Position, tostring(SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].NewScale));
                 circle:SetWorldPos(SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].Position);
-                circle:SetWorldScale(tostring(SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].NewScale));
+                circle:SetWorldScale(SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].NewScale);
 
                 -- Resets the timers and sets properties for the new phase
                 SCAAMBattleRoyaleProperties.CurrentScale = SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].NewScale;
