@@ -4111,8 +4111,39 @@ function SCAAMBRSpawnGameItems()
         spawnParams.class = 'quadbike';
         spawnParams.position = spawner.Position;
 
+        local randomSkin = random(13);
+        local skinString = '';
+        
+        if (randomSkin == 1) then
+            skinString = '9DFDBD68';
+        elseif (randomSkin == 2) then
+            skinString = 'E76DC5A8';
+        elseif (randomSkin == 3) then
+            skinString = '7CE64287';
+        elseif (randomSkin == 4) then
+            skinString = 'E5EF133D';
+        elseif (randomSkin == 5) then
+            skinString = '92E823AB';
+        elseif (randomSkin == 6) then
+            skinString = '0C8CB608';
+        elseif (randomSkin == 7) then
+            skinString = 'C4E2E961';
+        elseif (randomSkin == 8) then
+            skinString = '6B0D88EF';
+        elseif (randomSkin == 9) then
+            skinString = '55387ECA';
+        elseif (randomSkin == 10) then
+            skinString = '9C4D4B71';
+        elseif (randomSkin == 11) then
+            skinString = '7DD6E786';
+        elseif (randomSkin == 12) then
+            skinString = '56B7CAE4';
+        elseif (randomSkin == 13) then
+            skinString = 'A6CCD508';
+        end
+
         vehicle = System.SpawnEntity(spawnParams);
-        local JSONText = '{"skin":"","dieselfuel":1000000,"oil":600000,"is":{"cats":[]}}';
+        local JSONText = '{"skin":"' .. skinString .. '","dieselfuel":1000000,"oil":600000,"is":{"cats":[]}}';
         vehicle.vehicle:ReadOrRestoreJSON(true, JSONText);
         ISM.GiveItem(vehicle.id, 'SparkPlugs', false, vehicle.id, 'sparkplugs00');
         ISM.GiveItem(vehicle.id, 'DriveBelt', false, vehicle.id, 'drivebelt00');
