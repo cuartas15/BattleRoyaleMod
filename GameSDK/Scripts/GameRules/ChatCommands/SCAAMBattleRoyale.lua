@@ -5238,6 +5238,14 @@ function SCAAMBRCheckPlayers(circle, radius)
         local playerChannel = listOfPlayingPlayers[1].actor:GetChannel();
         listOfPlayingPlayers[1].onClient:SCAAMBRChangeTheStates(playerChannel, 'freezeplayer', '');
 
+        -- If the player is inside a vehicle get them out before teleporting them
+        local vehicleId = listOfPlayingPlayers[1].actor:GetLinkedVehicleId();
+
+        if (vehicleId) then
+            local vehicle = System.GetEntity(vehicleId);
+            vehicle:LeaveVehicle(listOfPlayingPlayers[1].id)
+        end
+
         -- Calls the lobby function after a delay
         Script.SetTimerForFunction(5000, 'SCAAMBRDeclareWinner', listOfPlayingPlayers[1]);
 
@@ -6750,6 +6758,9 @@ RegisterCallbackReturnAware(
                 -- Sets the damage dealt to 0
                 player.SCAAMBRDamageDealt = 0;
 
+                -- Sets the spectating player to nil
+                player.SCAAMBRIsSpectating = nil;
+
                 -- Assign custom BR keybinds to players
                 local playerChannel = player.actor:GetChannel();
                 player.onClient:SCAAMBRInitThePlayer(playerChannel);
@@ -6821,6 +6832,9 @@ RegisterCallbackReturnAware(
 
                 -- Sets the damage dealt to 0
                 player.SCAAMBRDamageDealt = 0;
+
+                -- Sets the spectating player to nil
+                player.SCAAMBRIsSpectating = nil;
 
                 -- Assign custom BR keybinds to players
                 local playerChannel = player.actor:GetChannel();
@@ -7769,3 +7783,102 @@ ChatCommands["!whois"] = function(playerId, command)
         end
     end
 end
+
+-- -- !spectate <subcommand>
+-- -- Uses the !spectate command to spectate a player in front
+-- ChatCommands["!spectate"] = function(playerId, command)
+--     local player = System.GetEntity(playerId);
+--     local spectatedPlayer = nil;
+
+--     local vForwardOffset = {x=0, y=0, z=0};
+--     local vPointingPosition = {x=0, y=0, z=0};
+--     FastScaleVector(vForwardOffset, player:GetDirectionVector(), 1.0);
+--     FastSumVectors(vPointingPosition, vForwardOffset, player:GetWorldPos());
+    
+--     local spectatedPlayers = System.GetEntitiesInSphereByClass(vPointingPosition, 1, 'Player');
+    
+--     if (table.getn(spectatedPlayers) > 0) then
+--         for key, player2 in pairs(spectatedPlayers) do
+--             if (player2.id ~= playerId) then
+--                 spectatedPlayer = player2;
+--                 break;
+--             end
+--         end
+--     end
+
+--     if (spectatedPlayer ~= nil) then
+--         local playerChannel = player.actor:GetChannel();
+--         player.SCAAMBRIsSpectating = true;
+--         player.allClients:SCAAMBRManageSpectatePlayer(spectatedPlayer.id, 'hide');
+--         player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, spectatedPlayer.id, 'spectate');
+--     else
+
+--         -- Editor or server specific actions
+--         if (System.IsEditor()) then
+--             g_gameRules.game:SendTextMessage(0, g_localActorId, 'No player found');
+--         else
+--             g_gameRules.game:SendTextMessage(0, playerId, 'No player found');
+--         end
+--     end
+-- end
+
+-- -- !spectateglobal <subcommand>
+-- -- Uses the !spectateglobal command to spectate a player globally
+-- ChatCommands["!spectateglobal"] = function(playerId, command)
+--     local player = System.GetEntity(playerId);
+--     local spectatedPlayer = nil;
+
+--     local players = CryAction.GetPlayerList();
+
+--     for key, player2 in pairs(players) do
+--         if (player2.id ~= playerId) then
+--             spectatedPlayer = player2;
+--             break;
+--         end
+--     end
+
+--     if (spectatedPlayer ~= nil) then
+--         local playerChannel = player.actor:GetChannel();
+--         player.SCAAMBRIsSpectating = true;
+--         player.allClients:SCAAMBRManageSpectatePlayer(spectatedPlayer.id, 'hide');
+
+--         player.player:TeleportTo(spectatedPlayer:GetWorldPos());
+
+--         local data = {
+--             PlayerId = playerId,
+--             SpectatedPlayerId = spectatedPlayer.id
+--         };
+
+--         Script.SetTimerForFunction(1000, 'SCAAMBRSpectatePlayerAfterDelay', data);
+--     else
+
+--         -- Editor or server specific actions
+--         if (System.IsEditor()) then
+--             g_gameRules.game:SendTextMessage(0, g_localActorId, 'No player found');
+--         else
+--             g_gameRules.game:SendTextMessage(0, playerId, 'No player found');
+--         end
+--     end
+-- end
+
+-- -- SCAAMBRSpectatePlayerAfterDelay
+-- -- Starts spectating the player after a delay of 1s
+-- function SCAAMBRSpectatePlayerAfterDelay(data)
+--     local player = System.GetEntity(data.PlayerId);
+--     local playerChannel = player.actor:GetChannel();
+--     player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, data.SpectatedPlayerId, 'spectate');
+-- end
+
+-- -- !stopspectate <subcommand>
+-- -- Uses the !stopspectate command to stop spectating a player
+-- ChatCommands["!stopspectate"] = function(playerId, command)
+--     local player = System.GetEntity(playerId);
+
+--     if (player.SCAAMBRIsSpectating and player.SCAAMBRIsSpectating == true) then
+--         local playerChannel = player.actor:GetChannel();
+
+--         player.SCAAMBRIsSpectating = false;
+--         player.allClients:SCAAMBRManageSpectatePlayer(playerId, 'unhide');
+--         player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, playerId, 'stopspectate');
+--     end
+-- end

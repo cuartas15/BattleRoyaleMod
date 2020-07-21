@@ -1,5 +1,5 @@
 <LevelData SandboxVersion="3.8.6.49">
- <LevelInfo CreationDate="07/18/20" Name="BattleRoyale" HeightmapSize="800" HeightmapUnitSize="1" HeightmapMaxHeight="1024" WaterLevel="15" TerrainSectorSizeInMeters="32"/>
+ <LevelInfo CreationDate="07/20/20" Name="BattleRoyale" HeightmapSize="800" HeightmapUnitSize="1" HeightmapMaxHeight="1024" WaterLevel="15" TerrainSectorSizeInMeters="32"/>
  <SurfaceTypes>
   <SurfaceType Name="Materials/terrain/terrain_pebbles01" SurfaceTypeID="0" DetailTexture="" DetailScaleX="1" DetailScaleY="1" DetailMaterial="Materials/terrain/terrain_pebbles01" ProjectAxis="2" Bumpmap="" ProjAxis="Z"/>
   <SurfaceType Name="Materials/terrain/cliff_new_substance" SurfaceTypeID="1" DetailTexture="" DetailScaleX="1" DetailScaleY="1" DetailMaterial="Materials/terrain/cliff_new_substance" ProjectAxis="2" Bumpmap="" ProjAxis="Z"/>
@@ -13,7 +13,12 @@
   <SurfaceType Name="Materials/terrain/terrain_dirt_rocky" SurfaceTypeID="9" DetailTexture="" DetailScaleX="1" DetailScaleY="1" DetailMaterial="Materials/terrain/terrain_dirt_rocky" ProjectAxis="2" Bumpmap="" ProjAxis="Z"/>
   <SurfaceType Name="Materials/terrain/terrain_leaves_plant" SurfaceTypeID="10" DetailTexture="" DetailScaleX="1" DetailScaleY="1" DetailMaterial="Materials/terrain/terrain_leaves_plant" ProjectAxis="2" Bumpmap="" ProjAxis="Z"/>
   <SurfaceType Name="Materials/terrain/pine_needles_03" SurfaceTypeID="11" DetailTexture="" DetailScaleX="1" DetailScaleY="1" DetailMaterial="Materials/terrain/pine_needles_03" ProjectAxis="2" Bumpmap="" ProjAxis="Z"/>
-  <SurfaceType Name="Materials/terrain/terrain_grass1" SurfaceTypeID="12" DetailTexture="" DetailScaleX="1" DetailScaleY="1" DetailMaterial="Materials/terrain/terrain_grass1" ProjectAxis="2" Bumpmap="" ProjAxis="Z"/>
+  <SurfaceType Name="Materials/terrain/terrain_grass1" SurfaceTypeID="12" DetailTexture="" DetailScaleX="1" DetailScaleY="1" DetailMaterial="Materials/terrain/terrain_grass1" ProjectAxis="2" Bumpmap="" ProjAxis="Z">
+   <VegetationGroup GUID="{6E1DC17A-EC12-4564-9D9E-11F80A666BC3}" Id="51"/>
+   <VegetationGroup GUID="{346B6562-F6D8-4B94-A9C9-A8ED43B9FA83}" Id="68"/>
+   <VegetationGroup GUID="{F7F8A86C-9325-4EBE-9598-4A7F16603E3E}" Id="69"/>
+   <VegetationGroup GUID="{C592D355-55D6-4552-95E2-7C0DD608A72B}" Id="75"/>
+  </SurfaceType>
   <SurfaceType Name="Materials/terrain/terrain_grass_dry" SurfaceTypeID="13" DetailTexture="" DetailScaleX="1" DetailScaleY="1" DetailMaterial="Materials/terrain/terrain_grass_dry" ProjectAxis="2" Bumpmap="" ProjAxis="Z"/>
   <SurfaceType Name="Materials/terrain/terrain_dirt_patchy" SurfaceTypeID="14" DetailTexture="" DetailScaleX="1" DetailScaleY="1" DetailMaterial="Materials/terrain/terrain_dirt_patchy" ProjectAxis="2" Bumpmap="" ProjAxis="Z"/>
   <SurfaceType Name="Materials/terrain/MaxDev_Sand_Smooth" SurfaceTypeID="15" DetailTexture="" DetailScaleX="1" DetailScaleY="1" DetailMaterial="Materials/terrain/MaxDev_Sand_Smooth" ProjectAxis="2" Bumpmap="" ProjAxis="Z"/>
@@ -33,13 +38,19 @@
   <SurfaceType Name="Materials/terrain/SandClean" SurfaceTypeID="29" DetailTexture="" DetailScaleX="1" DetailScaleY="1" DetailMaterial="Materials/terrain/SandClean" ProjectAxis="2" Bumpmap="" ProjAxis="Z"/>
   <SurfaceType Name="Materials/terrain/SandRocks" SurfaceTypeID="30" DetailTexture="" DetailScaleX="1" DetailScaleY="1" DetailMaterial="Materials/terrain/SandRocks" ProjectAxis="2" Bumpmap="" ProjAxis="Z"/>
   <SurfaceType Name="Materials/terrain/sandrocks2" SurfaceTypeID="31" DetailTexture="" DetailScaleX="1" DetailScaleY="1" DetailMaterial="Materials/terrain/sandrocks2" ProjectAxis="2" Bumpmap="" ProjAxis="Z"/>
-  <SurfaceType Name="Materials/terrain/procedural/short_grass_proc" SurfaceTypeID="32" DetailTexture="" DetailScaleX="1" DetailScaleY="1" DetailMaterial="Materials/terrain/procedural/short_grass_proc" ProjectAxis="2" Bumpmap="" ProjAxis="Z"/>
-  <SurfaceType Name="Materials/terrain/procedural/long_grass_proc" SurfaceTypeID="33" DetailTexture="" DetailScaleX="1" DetailScaleY="1" DetailMaterial="Materials/terrain/procedural/long_grass_proc" ProjectAxis="2" Bumpmap="" ProjAxis="Z"/>
+  <SurfaceType Name="Materials/terrain/procedural/short_grass_proc" SurfaceTypeID="32" DetailTexture="" DetailScaleX="1" DetailScaleY="1" DetailMaterial="Materials/terrain/procedural/short_grass_proc" ProjectAxis="2" Bumpmap="" ProjAxis="Z">
+   <VegetationGroup GUID="{6E1DC17A-EC12-4564-9D9E-11F80A666BC3}" Id="51"/>
+  </SurfaceType>
+  <SurfaceType Name="Materials/terrain/procedural/long_grass_proc" SurfaceTypeID="33" DetailTexture="" DetailScaleX="1" DetailScaleY="1" DetailMaterial="Materials/terrain/procedural/long_grass_proc" ProjectAxis="2" Bumpmap="" ProjAxis="Z">
+   <VegetationGroup GUID="{C592D355-55D6-4552-95E2-7C0DD608A72B}" Id="75"/>
+  </SurfaceType>
   <SurfaceType Name="Materials/terrain/procedural/grass_flowers_proc" SurfaceTypeID="34" DetailTexture="" DetailScaleX="1" DetailScaleY="1" DetailMaterial="Materials/terrain/procedural/grass_flowers_proc" ProjectAxis="2" Bumpmap="" ProjAxis="Z"/>
   <SurfaceType Name="Materials/terrain/procedural/forest_basic_proc" SurfaceTypeID="35" DetailTexture="" DetailScaleX="1" DetailScaleY="1" DetailMaterial="Materials/terrain/procedural/forest_basic_proc" ProjectAxis="2" Bumpmap="" ProjAxis="Z"/>
   <SurfaceType Name="Materials/terrain/procedural/forest_rocky_proc" SurfaceTypeID="36" DetailTexture="" DetailScaleX="1" DetailScaleY="1" DetailMaterial="Materials/terrain/procedural/forest_rocky_proc" ProjectAxis="2" Bumpmap="" ProjAxis="Z"/>
   <SurfaceType Name="Materials/terrain/procedural/marsh_proc" SurfaceTypeID="37" DetailTexture="" DetailScaleX="1" DetailScaleY="1" DetailMaterial="Materials/terrain/procedural/marsh_proc" ProjectAxis="2" Bumpmap="" ProjAxis="Z"/>
-  <SurfaceType Name="Materials/terrain/procedural/grass_dry_proc" SurfaceTypeID="38" DetailTexture="" DetailScaleX="1" DetailScaleY="1" DetailMaterial="Materials/terrain/procedural/grass_dry_proc" ProjectAxis="2" Bumpmap="" ProjAxis="Z"/>
+  <SurfaceType Name="Materials/terrain/procedural/grass_dry_proc" SurfaceTypeID="38" DetailTexture="" DetailScaleX="1" DetailScaleY="1" DetailMaterial="Materials/terrain/procedural/grass_dry_proc" ProjectAxis="2" Bumpmap="" ProjAxis="Z">
+   <VegetationGroup GUID="{F7F8A86C-9325-4EBE-9598-4A7F16603E3E}" Id="69"/>
+  </SurfaceType>
   <SurfaceType Name="Materials/terrain/Terrain_Mud_puddle" SurfaceTypeID="39" DetailTexture="" DetailScaleX="1" DetailScaleY="1" DetailMaterial="Materials/terrain/Terrain_Mud_puddle" ProjectAxis="2" Bumpmap="" ProjAxis="Z"/>
   <SurfaceType Name="Materials/terrain/Terrain_Dry_Mud" SurfaceTypeID="40" DetailTexture="" DetailScaleX="1" DetailScaleY="1" DetailMaterial="Materials/terrain/Terrain_Dry_Mud" ProjectAxis="2" Bumpmap="" ProjAxis="Z"/>
  </SurfaceTypes>

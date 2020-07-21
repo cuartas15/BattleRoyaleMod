@@ -106,6 +106,22 @@ local SCAAMBRCustomPlayer = {
                 self:SCAAMBRChangeTheUIStateClient(action, value);
             end,
 
+            -- SCAAMBRManageSpectatePlayer
+            -- Spectates a player, testing
+            SCAAMBRManageSpectatePlayer = function (self, spectatedPlayerId, action)
+                if (action == 'spectate') then
+                    self.SCAAMBRSpectatedPlayerId = spectatedPlayerId;
+                    self:SCAAMBRStartSpectatePlayer();
+                elseif (action == 'stopspectate') then
+                    self.SCAAMBRSpectatedPlayerId = nil;
+                    CryAction.ResetToNormalCamera();
+                elseif (action == 'hide') then
+                    self:Hide(1);
+                elseif (action == 'unhide') then
+                    self:Hide(0);
+                end
+            end
+
             -- -- SCAAMBRWatchThePlayer
             -- -- Spectates a player if the player is InLobby
             -- SCAAMBRWatchThePlayer = function (self, playerPos, ownPlayerPos)
@@ -127,7 +143,7 @@ local SCAAMBRCustomPlayer = {
             --     -- If it found a player it starts the process to spectate
             --     if (self.SCAAMBRSpectatedPlayerId ~= nil) then
             --         SCAAMBRUIFunctions:DeactivateGameSpectateFilters();
-            --         SCAAMBRSpectatePlayerTimer();
+            --         SCAAMBRManageSpectatePlayerTimer();
             --         self.SCAAMBRToggledSpectateUI = true;
             --     end
             --     Log('finished spectate player client function')
@@ -327,6 +343,28 @@ local SCAAMBRCustomPlayer = {
 
             self.SCAAMBRUIBuiltJSON = '';
             self.SCAAMBRUIBuiltChunkCounter = 0;
+        end,
+
+        -- SCAAMBRStartSpectatePlayer
+        -- Starts the timer to spectate a player
+        SCAAMBRStartSpectatePlayer = function (self)
+            Script.SetTimerForFunction(10, 'Player.SCAAMBRSpectateAfterDelay', self);
+        end,
+
+        -- SCAAMBRSpectateAfterDelay
+        -- Updates the player's camera view to the position and rotation of the spectated player
+        SCAAMBRSpectateAfterDelay = function (self)
+            if (self.SCAAMBRSpectatedPlayerId ~= nil) then
+                local spectatedPlayer = System.GetEntity(self.SCAAMBRSpectatedPlayerId);
+                local position = spectatedPlayer:GetWorldPos();
+                position.z = position.z + 1.9;
+                position.y = position.y - 0.1;
+                CryAction.SetViewCamera(position, spectatedPlayer:GetDirectionVector());
+
+                self:SCAAMBRStartSpectatePlayer();
+            else
+                CryAction.ResetToNormalCamera();
+            end
         end
     },
     Expose = {
@@ -337,7 +375,7 @@ local SCAAMBRCustomPlayer = {
             SCAAMBRToggleUI = { RELIABLE_ORDERED, POST_ATTACH, STRING, BOOL },
             SCAAMBRChangeTheStates = { RELIABLE_ORDERED, POST_ATTACH, STRING, STRING },
             SCAAMBRBuildTheDataUI = { RELIABLE_ORDERED, PRE_ATTACH, STRING, BOOL, INT16, INT16, STRING, STRING, STRING, STRING },
-            -- SCAAMBRWatchThePlayer = { RELIABLE_ORDERED, PRE_ATTACH, VEC3, VEC3 }
+            SCAAMBRManageSpectatePlayer = { RELIABLE_ORDERED, PRE_ATTACH, ENTITYID, STRING }
         },
         ServerMethods = {
             SCAAMBRStimPackByKey = { RELIABLE_ORDERED, POST_ATTACH },
