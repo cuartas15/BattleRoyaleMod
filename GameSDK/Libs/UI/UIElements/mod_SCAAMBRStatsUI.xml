@@ -6,6 +6,12 @@
       </Constraints>
     </GFx>
     <functions>
+      <function name="SetGunIcon" funcname="SetGunIcon">
+        <param name="iconPath" desc="" type="String" />
+      </function>
+      <function name="SetAmmo" funcname="SetAmmo">
+        <param name="ammoText" desc="" type="String" />
+      </function>
       <function name="SetArmor" funcname="SetArmor">
         <param name="armorValue" desc="" type="String" />
       </function>

@@ -31,6 +31,7 @@ local SCAAMBRCustomPlayer = {
                 System.AddKeyBind('tilde', 'SCAAMBRMenu tilde');
 
                 -- Sets the custom client variables
+                self.SCAAMBRCurrentGun = nil;
                 self.SCAAMBRStimPackCounter = 0;
                 self.SCAAMBRArmorCounter = 0;
                 self.SCAAMBRToggledUI = false;
@@ -116,9 +117,11 @@ local SCAAMBRCustomPlayer = {
                     self.SCAAMBRSpectatedPlayerId = nil;
                     CryAction.ResetToNormalCamera();
                 elseif (action == 'hide') then
-                    self:Hide(1);
+                    -- self:Hide(1);
+                    self:LoadObject(0, 'Objects/SCAAMCuartas/BattleRoyaleSpectator/spectator.cgf');
                 elseif (action == 'unhide') then
-                    self:Hide(0);
+                    -- self:Hide(0);
+                    self:LoadObject(0, 'Objects/Characters/players/male/human_male.cdf');
                 end
             end
 
@@ -237,7 +240,11 @@ local SCAAMBRCustomPlayer = {
 
             -- Checks if the player has the UI opened so it can be updated
             if (self.SCAAMBRToggledUI == true) then
-                if (action == 'setarmor') then
+                if (action == 'setgunicon') then
+                    UIAction.CallFunction('mod_SCAAMBRStatsUI', 0, 'SetGunIcon', value);
+                elseif (action == 'setammocounter') then
+                    UIAction.CallFunction('mod_SCAAMBRStatsUI', 0, 'SetAmmo', value);
+                elseif (action == 'setarmor') then
                     UIAction.CallFunction('mod_SCAAMBRStatsUI', 0, 'SetArmor', value);
                 elseif (action == 'setarmorcounter') then
                     UIAction.CallFunction('mod_SCAAMBRStatsUI', 0, 'SetArmorCounter', value);
@@ -356,10 +363,7 @@ local SCAAMBRCustomPlayer = {
         SCAAMBRSpectateAfterDelay = function (self)
             if (self.SCAAMBRSpectatedPlayerId ~= nil) then
                 local spectatedPlayer = System.GetEntity(self.SCAAMBRSpectatedPlayerId);
-                local position = spectatedPlayer:GetWorldPos();
-                position.z = position.z + 1.9;
-                position.y = position.y - 0.1;
-                CryAction.SetViewCamera(position, spectatedPlayer:GetDirectionVector());
+                self:SetWorldPos(spectatedPlayer:GetWorldPos());
 
                 self:SCAAMBRStartSpectatePlayer();
             else
