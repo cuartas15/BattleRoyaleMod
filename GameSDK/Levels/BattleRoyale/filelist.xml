@@ -2,6 +2,6 @@
  <index src="filelist.xml" dest="filelist.xml"/>
  <files>
   <file src="battleroyale.xml" dest="battleroyale.xml" size="349" md5="b10575aa395e4c0197126395d493354d"/>
-  <file src="level.pak" dest="level.pak" size="21174068" md5="9de8ae3cc88ca6ccd3b8f357d6444b5b"/>
+  <file src="level.pak" dest="level.pak" size="21147698" md5="47fc6e2503eecff62721b6c6e3b0f0e0"/>
  </files>
 </download>
