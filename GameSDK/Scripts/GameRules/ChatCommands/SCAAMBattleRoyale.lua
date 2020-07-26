@@ -6784,6 +6784,9 @@ RegisterCallbackReturnAware(
                 -- Sets the spectating player to nil
                 player.SCAAMBRIsSpectating = nil;
 
+                -- Sets the spectating last position of the player to nil
+                player.SCAAMBRLastPosition = nil;
+
                 -- Assign custom BR keybinds to players
                 local playerChannel = player.actor:GetChannel();
                 player.onClient:SCAAMBRInitThePlayer(playerChannel);
@@ -6858,6 +6861,9 @@ RegisterCallbackReturnAware(
 
                 -- Sets the spectating player to nil
                 player.SCAAMBRIsSpectating = nil;
+
+                -- Sets the spectating last position of the player to nil
+                player.SCAAMBRLastPosition = nil;
 
                 -- Assign custom BR keybinds to players
                 local playerChannel = player.actor:GetChannel();
@@ -7813,9 +7819,9 @@ ChatCommands["!loadobject"] = function(playerId, command)
     local player = System.GetEntity(playerId);
     player:LoadObject(0, command);
     if (command == 'Objects/SCAAMCuartas/BattleRoyaleSpectator/spectator.cgf') then
-        player.allClients:SCAAMBRManageSpectatePlayer(player.id, 'hide');
+        player.allClients:SCAAMBRManageSpectatePlayer(player.id, 'hide', player:GetWorldPos());
     else
-        player.allClients:SCAAMBRManageSpectatePlayer(player.id, 'unhide');
+        player.allClients:SCAAMBRManageSpectatePlayer(player.id, 'unhide', player:GetWorldPos());
     end
     -- !loadobject Objects/SCAAMCuartas/BattleRoyaleSpectator/spectator.cgf
 end
@@ -7845,9 +7851,12 @@ ChatCommands["!spectate"] = function(playerId, command)
     if (spectatedPlayer ~= nil) then
         local playerChannel = player.actor:GetChannel();
         player.SCAAMBRIsSpectating = true;
+        player.SCAAMBRLastPosition = player:GetWorldPos();
+
+        player:EnablePhysics(false);
         player:LoadObject(0, 'Objects/SCAAMCuartas/BattleRoyaleSpectator/spectator.cgf');
-        player.allClients:SCAAMBRManageSpectatePlayer(spectatedPlayer.id, 'hide');
-        player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, spectatedPlayer.id, 'spectate');
+        player.allClients:SCAAMBRManageSpectatePlayer(spectatedPlayer.id, 'hide', player:GetWorldPos());
+        player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, spectatedPlayer.id, 'spectate', player:GetWorldPos());
     else
 
         -- Editor or server specific actions
@@ -7877,8 +7886,11 @@ ChatCommands["!spectateglobal"] = function(playerId, command)
     if (spectatedPlayer ~= nil) then
         local playerChannel = player.actor:GetChannel();
         player.SCAAMBRIsSpectating = true;
+        player.SCAAMBRLastPosition = player:GetWorldPos();
+
+        player:EnablePhysics(false);
         player:LoadObject(0, 'Objects/SCAAMCuartas/BattleRoyaleSpectator/spectator.cgf');
-        player.allClients:SCAAMBRManageSpectatePlayer(spectatedPlayer.id, 'hide');
+        player.allClients:SCAAMBRManageSpectatePlayer(spectatedPlayer.id, 'hide', player:GetWorldPos());
 
         player.player:TeleportTo(spectatedPlayer:GetWorldPos());
 
@@ -7904,7 +7916,7 @@ end
 function SCAAMBRSpectatePlayerAfterDelay(data)
     local player = System.GetEntity(data.PlayerId);
     local playerChannel = player.actor:GetChannel();
-    player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, data.SpectatedPlayerId, 'spectate');
+    player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, data.SpectatedPlayerId, 'spectate', player:GetWorldPos());
 end
 
 -- !stopspectate <subcommand>
@@ -7915,9 +7927,14 @@ ChatCommands["!stopspectate"] = function(playerId, command)
     if (player.SCAAMBRIsSpectating and player.SCAAMBRIsSpectating == true) then
         local playerChannel = player.actor:GetChannel();
 
+        player.player:TeleportTo(player.SCAAMBRLastPosition);
+
+        player.SCAAMBRLastPosition = nil;
         player.SCAAMBRIsSpectating = false;
+
+        player:EnablePhysics(true);
         player:LoadObject(0, 'Objects/Characters/players/male/human_male.cdf');
-        player.allClients:SCAAMBRManageSpectatePlayer(playerId, 'unhide');
-        player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, playerId, 'stopspectate');
+        player.allClients:SCAAMBRManageSpectatePlayer(playerId, 'unhide', player:GetWorldPos());
+        player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, playerId, 'stopspectate', player:GetWorldPos());
     end
 end

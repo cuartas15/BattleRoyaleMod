@@ -109,18 +109,17 @@ local SCAAMBRCustomPlayer = {
 
             -- SCAAMBRManageSpectatePlayer
             -- Spectates a player, testing
-            SCAAMBRManageSpectatePlayer = function (self, spectatedPlayerId, action)
+            SCAAMBRManageSpectatePlayer = function (self, spectatedPlayerId, action, lastPosition)
                 if (action == 'spectate') then
                     self.SCAAMBRSpectatedPlayerId = spectatedPlayerId;
                     self:SCAAMBRStartSpectatePlayer();
                 elseif (action == 'stopspectate') then
                     self.SCAAMBRSpectatedPlayerId = nil;
-                    CryAction.ResetToNormalCamera();
                 elseif (action == 'hide') then
-                    -- self:Hide(1);
+                    self:EnablePhysics(false);
                     self:LoadObject(0, 'Objects/SCAAMCuartas/BattleRoyaleSpectator/spectator.cgf');
                 elseif (action == 'unhide') then
-                    -- self:Hide(0);
+                    self:EnablePhysics(true);
                     self:LoadObject(0, 'Objects/Characters/players/male/human_male.cdf');
                 end
             end
@@ -366,8 +365,6 @@ local SCAAMBRCustomPlayer = {
                 self:SetWorldPos(spectatedPlayer:GetWorldPos());
 
                 self:SCAAMBRStartSpectatePlayer();
-            else
-                CryAction.ResetToNormalCamera();
             end
         end
     },
@@ -379,7 +376,7 @@ local SCAAMBRCustomPlayer = {
             SCAAMBRToggleUI = { RELIABLE_ORDERED, POST_ATTACH, STRING, BOOL },
             SCAAMBRChangeTheStates = { RELIABLE_ORDERED, POST_ATTACH, STRING, STRING },
             SCAAMBRBuildTheDataUI = { RELIABLE_ORDERED, PRE_ATTACH, STRING, BOOL, INT16, INT16, STRING, STRING, STRING, STRING },
-            SCAAMBRManageSpectatePlayer = { RELIABLE_ORDERED, PRE_ATTACH, ENTITYID, STRING }
+            SCAAMBRManageSpectatePlayer = { RELIABLE_ORDERED, PRE_ATTACH, ENTITYID, STRING, VEC3 }
         },
         ServerMethods = {
             SCAAMBRStimPackByKey = { RELIABLE_ORDERED, POST_ATTACH },
