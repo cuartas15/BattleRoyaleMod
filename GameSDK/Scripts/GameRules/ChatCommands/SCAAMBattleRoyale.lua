@@ -5265,6 +5265,15 @@ function SCAAMBRCheckPlayers(circle, radius)
             vehicle:LeaveVehicle(listOfPlayingPlayers[1].id)
         end
 
+        -- Removes this player from the spectable list
+        for key, playerId2 in pairs(SCAAMBRSpectatorPlayerList) do
+            if (playerId2 == listOfPlayingPlayers[1].id) then
+                SCAAMBRSwitchSpectators(listOfPlayingPlayers[1].id);
+                table.remove(SCAAMBRSpectatorPlayerList, key);
+                break;
+            end
+        end
+
         -- Calls the lobby function after a delay
         Script.SetTimerForFunction(5000, 'SCAAMBRDeclareWinner', listOfPlayingPlayers[1]);
 
