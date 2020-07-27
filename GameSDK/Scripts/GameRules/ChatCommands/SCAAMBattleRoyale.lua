@@ -130,6 +130,9 @@ local function round(n)
     return n % 1 >= 0.5 and math.ceil(n) or math.floor(n);
 end
 
+-- Spectator player list table
+SCAAMBRSpectatorPlayerList = {};
+
 -- The BR game counter, necessary for cleanup functions
 SCAAMBRGameNumber = 0;
 
@@ -3823,6 +3826,9 @@ function SCAAMBRInitGame(circleId)
         MapLocations = mapLocations
     };
 
+    -- Resets the player list for spectators
+    SCAAMBRSpectatorPlayerList = {};
+
     -- Gives all the players the state of Ready
     local listOfPlayers = CryAction.GetPlayerList();
     local playersPlaying = 0;
@@ -3835,6 +3841,10 @@ function SCAAMBRInitGame(circleId)
         -- Checks if the player has the Ready state meaning it is prepared to play
         -- This to prevent including players that just joined and didn't have enough time to be initialized
         if (player.SCAAMBRState == 'Ready') then
+
+            -- Adds the player to the spectator list
+            table.insert(SCAAMBRSpectatorPlayerList, player.id);
+
             playersPlaying = playersPlaying + 1;
             player.SCAAMBRState = 'Playing'
             player.SCAAMBRArmor = 0;
@@ -4838,6 +4848,15 @@ function SCAAMBRProcessDamage(player, processFromCircle)
 
         SCAAMBattleRoyaleProperties.CurrentPlayers = playersPlaying;
 
+        -- Removes this player from the spectable list
+        for key, playerId2 in pairs(SCAAMBRSpectatorPlayerList) do
+            if (playerId2 == player.id) then
+                SCAAMBRSwitchSpectators(player.id);
+                table.remove(SCAAMBRSpectatorPlayerList, key);
+                break;
+            end
+        end
+
         -- Submits the score to the stats table
         local stats = {
             Name = player:GetName(),
@@ -5276,6 +5295,7 @@ function SCAAMBRCheckPlayers(circle, radius)
                 if (playersPlaying ~= SCAAMBattleRoyaleProperties.CurrentPlayers) then
                     player.onClient:SCAAMBRChangeTheStates(playerChannel, 'setplayercounter', tostring(playersPlaying));
                     SCAAMBattleRoyaleProperties.CurrentPlayers = PlayersPlaying;
+                    SCAAMBRCheckOnDisconnectedSpectatedPlayers();
                 end
                 
                 -- If the distance is greater than the radius AKA the circle's scale, then the player is outside
@@ -6218,6 +6238,33 @@ function SCAAMBRUIFunctions:CloseMapGame()
     Script.SetTimerForFunction(200, 'SCAAMBRUIFunctions.ReactivateGameMapFilters', self);
 end
 
+-- SCAAMBRUIFunctions:OpenSpectatorMode
+-- Closes the spectator mode to return to the lobby menu
+function SCAAMBRUIFunctions:OpenSpectatorMode()
+    UIAction.CallFunction('mod_SCAAMBRStatsUI', 0, 'GoToSpectatorMode');
+    SCAAMBRUIFunctions:DeactivateGameSpectateFilters();
+end
+
+-- SCAAMBRUIFunctions:SetSpectatedNameAfterDelay
+-- Sets the spectated player name after a 25ms delay
+function SCAAMBRUIFunctions:SetSpectatedNameAfterDelay(spectatedPlayerName)
+    self.spectatedPlayerName = spectatedPlayerName;
+    Script.SetTimerForFunction(25, 'SCAAMBRUIFunctions.SetSpectatedName', self);
+end
+
+-- SetSpectatedName
+-- Sets the spectated player name
+function SCAAMBRUIFunctions:SetSpectatedName()
+    UIAction.CallFunction('mod_SCAAMBRStatsUI', 0, 'SetSpectatedPlayerName', self.spectatedPlayerName);
+end
+
+-- SCAAMBRUIFunctions:CloseSpectatorMode
+-- Closes the spectator mode to return to the lobby menu
+function SCAAMBRUIFunctions:CloseSpectatorMode()
+    UIAction.CallFunction('mod_SCAAMBRStatsUI', 0, 'GoToIdle');
+    Script.SetTimerForFunction(200, 'SCAAMBRUIFunctions.ReactivateGameSpectateFilters', self);
+end
+
 -- SCAAMBRUIFunctions:DeactivateGameMapFilters
 -- Enables the filters to prevent player mouse movement
 function SCAAMBRUIFunctions:DeactivateGameMapFilters()
@@ -6232,21 +6279,21 @@ function SCAAMBRUIFunctions:ReactivateGameMapFilters()
     ActionMapManager.EnableActionFilter('ladder_only', false);
 end
 
--- -- SCAAMBRUIFunctions:DeactivateGameSpectateFilters
--- -- Enables the filters to prevent player movement
--- function SCAAMBRUIFunctions:DeactivateGameSpectateFilters()
---     ActionMapManager.EnableActionFilter('no_move', true);
---     ActionMapManager.EnableActionFilter('inventory', true);
---     ActionMapManager.EnableActionFilter('ladder_only', true);
--- end
+-- SCAAMBRUIFunctions:DeactivateGameSpectateFilters
+-- Enables the filters to prevent player movement
+function SCAAMBRUIFunctions:DeactivateGameSpectateFilters()
+    ActionMapManager.EnableActionFilter('no_move', true);
+    ActionMapManager.EnableActionFilter('inventory', true);
+    ActionMapManager.EnableActionFilter('ladder_only', true);
+end
 
--- -- SCAAMBRUIFunctions:ReactivateGameSpectateFilters
--- -- Disables the filters so the player can move again
--- function SCAAMBRUIFunctions:ReactivateGameSpectateFilters()
---     ActionMapManager.EnableActionFilter('no_move', false);
---     ActionMapManager.EnableActionFilter('inventory', false);
---     ActionMapManager.EnableActionFilter('ladder_only', false);
--- end
+-- SCAAMBRUIFunctions:ReactivateGameSpectateFilters
+-- Disables the filters so the player can move again
+function SCAAMBRUIFunctions:ReactivateGameSpectateFilters()
+    ActionMapManager.EnableActionFilter('no_move', false);
+    ActionMapManager.EnableActionFilter('inventory', false);
+    ActionMapManager.EnableActionFilter('ladder_only', false);
+end
 
 -- SCAAMBRManageMenu
 -- Manages the menu custom keybinds
@@ -6258,12 +6305,12 @@ function SCAAMBRManageMenu(keyString)
         if ((System.IsEditor() and keyString == 'backspace') or keyString == 'tilde') then
 
             -- Checks if the player can perform menu actions
-            if (player.SCAAMBRToggledLobbyUI == true and player.SCAAMBRToggledMapUI == false and player.SCAAMBRToggledUI == true) then
+            if (player.SCAAMBRToggledLobbyUI == true and player.SCAAMBRToggledMapUI == false and player.SCAAMBRToggledSpectatorUI == false and player.SCAAMBRToggledUI == true) then
 
                 -- Checks in what state the menu is to either open or close it
                 if (player.SCAAMBRMenuState == 'idle') then
 
-                    -- Checks if the inventory menu is not opened
+                    -- Checks if the inventory, chat or game menu is not opened
                     if (ActionMapManager.IsFilterEnabled('only_ui') == false and ActionMapManager.IsFilterEnabled('inventory') == false) then
                         player.server:SCAAMBRGetTheMenuDat(g_localActorId, '');
                     end
@@ -6290,7 +6337,7 @@ function SCAAMBRManageMenu(keyString)
                     if (player.SCAAMBRToggledMapUI == false) then
 
                         -- Checks if the inventory menu is not opened
-                        if (ActionMapManager.IsFilterEnabled('inventory') == false) then
+                        if (ActionMapManager.IsFilterEnabled('only_ui') == false and ActionMapManager.IsFilterEnabled('inventory') == false) then
                             player.SCAAMBRToggledMapUI = true;
                             SCAAMBRUIFunctions:OpenMapGame();
                         end
@@ -6300,27 +6347,29 @@ function SCAAMBRManageMenu(keyString)
                     end
                 end
             end
-        -- elseif (keyString == 'backspace') then
-        --     local listOfPlayers = System.GetEntitiesInSphereByClass(player:GetWorldPos(), 3, 'Player');
-        --     dump(listOfPlayers, nil, 2);
-        --     Log("Players found: " .. tostring(table.getn(listOfPlayers)));
+        elseif (keyString == 'delete') then
 
-        --     -- Perform spectate actions
-        --     -- player.SCAAMBRToggledLobbyUI == false
-        --     if (player.SCAAMBRToggledSpectateUI == false) then
-        --         Log('Entered backspace to activate spectate')
-        --         player.server:SCAAMBRManageSpectatePlayer(g_localActorId, 'spectate', 'true');
-        --     elseif (player.SCAAMBRToggledSpectateUI == true) then
-        --         Log('Entered backspace to deactivate spectate')
-        --         SCAAMBRUIFunctions:ReactivateGameSpectateFilters();
-        --         player:SetWorldPos(self.SCAAMBRSavedOwnPosition);
-        --         player.SCAAMBRToggledSpectateUI = false;
-        --         player.server:SCAAMBRManageSpectatePlayer(g_localActorId, 'spectate', 'false');
-        --     end
+            -- Checks if the player can perform menu actions
+            if (player.SCAAMBRToggledLobbyUI == true and player.SCAAMBRToggledMapUI == false and player.SCAAMBRToggledUI == true) then
+                
+                if (player.SCAAMBRToggledSpectatorUI == false) then
+                    player.server:SCAAMBRManageSpectatePlayer(g_localActorId, 'spectate', '');
+                elseif (player.SCAAMBRToggledSpectatorUI == true) then
+                    SCAAMBRUIFunctions:CloseSpectatorMode();
+                    player.server:SCAAMBRManageSpectatePlayer(g_localActorId, 'stopspectate', '');
+                    player.SCAAMBRToggledSpectatorUI = false;
+                end
+            end
+        elseif (keyString == 'left' or keyString == 'right') then
+
+            -- Checks if the player can perform menu actions
+            if (player.SCAAMBRToggledLobbyUI == true and player.SCAAMBRToggledMapUI == false and player.SCAAMBRToggledSpectatorUI == true and player.SCAAMBRToggledUI == true) then
+                player.server:SCAAMBRManageSpectatePlayer(g_localActorId, 'changespectate', keyString);
+            end
         elseif (keyString == 'escape') then
 
             -- Checks if the player can perform menu actions
-            if (player.SCAAMBRToggledLobbyUI == true and player.SCAAMBRToggledUI == true) then
+            if (player.SCAAMBRToggledLobbyUI == true and player.SCAAMBRToggledSpectatorUI == false and player.SCAAMBRToggledUI == true) then
 
                 -- Checks in what state the menu is to close the menu
                 if (player.SCAAMBRMenuState == 'active') then
@@ -6328,6 +6377,12 @@ function SCAAMBRManageMenu(keyString)
                     UIAction.ShowElement('mod_SCAAMBRStatsUI', 0);
                     player.SCAAMBRMenuState = 'idle';
                 end
+            elseif (player.SCAAMBRToggledLobbyUI == true and player.SCAAMBRToggledSpectatorUI == true and player.SCAAMBRToggledUI == true) then
+
+                -- Goes from spectator mode to normal mode
+                SCAAMBRUIFunctions:CloseSpectatorMode();
+                player.server:SCAAMBRManageSpectatePlayer(g_localActorId, 'stopspectate', '');
+                player.SCAAMBRToggledSpectatorUI = false;
             elseif (player.SCAAMBRToggledMapUI == true and player.SCAAMBRToggledUI == true) then
 
                 -- Closes the map during game
@@ -6633,50 +6688,209 @@ end
 function SCAAMBRManageSpectate(playerId, action, value)
     local player = System.GetEntity(playerId);
 
-    -- Actions for spectating
-    Log('Entered Manage spectate')
     if (action == 'spectate') then
 
-        Log('Entered spectate')
-        if (value == 'true') then
-            Log('Entered spectate true')
-            local listOfPlayers = CryAction.GetPlayerList();
-            local spectatedPlayer = nil;
-            local spectatedPlayerPos = {};
+        -- Checks if there's an active game
+        if (SCAAMBattleRoyaleProperties.GameState == 'Active') then
 
-            for key, player2 in pairs(listOfPlayers) do
-                if (playerId ~= player2.id) then
-                    spectatedPlayer = player2.id;
-                    spectatedPlayerPos = player2:GetWorldPos();
-                    break;
-                end
-            end
-
-            if (spectatedPlayer ~= nil) then
-                Log('Entered someone to spectate')
-                -- Found a player to spectate so it starts the process to spectate them
-                local ownPlayerPos = player:GetWorldPos();
-                player:Hide(1);
-                Log('Entered hidden player')
-
+            -- Checks if there's at least 1 player to spectate
+            if (table.getn(SCAAMBRSpectatorPlayerList) > 0) then
                 local playerChannel = player.actor:GetChannel();
+                player.SCAAMBRLastPosition = player:GetWorldPos();
+                player.SCAAMBRSpectatedPlayerId = SCAAMBRSpectatorPlayerList[1];
 
-                player.onClient:SCAAMBRWatchThePlayer(playerChannel, spectatedPlayerPos, ownPlayerPos);
+                -- Gets the spectated player entity
+                local spectatedPlayer = System.GetEntity(player.SCAAMBRSpectatedPlayerId);
+
+                -- Disables physics on the player and changes the model to the spectator's one
+                player:EnablePhysics(false);
+                player:LoadObject(0, 'Objects/SCAAMCuartas/BattleRoyaleSpectator/spectator.cgf');
+                player.allClients:SCAAMBRManageSpectatePlayer(player.SCAAMBRSpectatedPlayerId, 'hide');
+
+                player.player:TeleportTo(spectatedPlayer:GetWorldPos());
+
+                local data = {
+                    PlayerId = playerId,
+                    SpectatedPlayerId = player.SCAAMBRSpectatedPlayerId,
+                    Operation = 'spectate'
+                };
+        
+                Script.SetTimerForFunction(500, 'SCAAMBRSpectatePlayerAfterDelay', data);
             else
 
                 -- Editor or server specific actions
                 if (System.IsEditor()) then
-                    g_gameRules.game:SendTextMessage(0, g_localActorId, "Couldn't find a player to spectate");
+                    g_gameRules.game:SendTextMessage(0, g_localActorId, "There's no players to spectate");
                 else
-                    g_gameRules.game:SendTextMessage(0, playerId, "Couldn't find a player to spectate");
+                    g_gameRules.game:SendTextMessage(0, playerId, "There's no players to spectate");
                 end
             end
         else
-            Log('Entered spectate false')
-            player:Hide(0);
+
+            -- Editor or server specific actions
+            if (System.IsEditor()) then
+                g_gameRules.game:SendTextMessage(0, g_localActorId, "A game hasn't started yet");
+            else
+                g_gameRules.game:SendTextMessage(0, playerId, "A game hasn't started yet");
+            end
+        end
+    elseif (action == 'changespectate') then
+
+        -- Checks if there's an active game
+        if (SCAAMBattleRoyaleProperties.GameState == 'Active') then
+
+            -- Checks for either the next or the previous player to spectate
+            -- Will only do something if there's more than 1 player
+            if (table.getn(SCAAMBRSpectatorPlayerList) > 1) then
+                local nextSpectatedPlayerId = nil;
+
+                for key, playerId2 in pairs(SCAAMBRSpectatorPlayerList) do
+                    if (playerId2 == player.SCAAMBRSpectatedPlayerId) then
+                        if (value == 'left') then
+
+                            -- Checks if a previous player exist, if not switch to the latest
+                            if (SCAAMBRSpectatorPlayerList[key - 1]) then
+                                nextSpectatedPlayerId = SCAAMBRSpectatorPlayerList[key - 1];
+                            else
+                                nextSpectatedPlayerId = SCAAMBRSpectatorPlayerList[table.getn(SCAAMBRSpectatorPlayerList)];
+                            end
+                        else
+
+                            -- Checks if a next player exist, if not switch to the first
+                            if (SCAAMBRSpectatorPlayerList[key + 1]) then
+                                nextSpectatedPlayerId = SCAAMBRSpectatorPlayerList[key + 1];
+                            else
+                                nextSpectatedPlayerId = SCAAMBRSpectatorPlayerList[1];
+                            end
+                        end
+                        break;
+                    end
+                end
+
+                if (nextSpectatedPlayerId == nil) then
+                    player.SCAAMBRSpectatedPlayerId = SCAAMBRSpectatorPlayerList[1];
+                else
+                    player.SCAAMBRSpectatedPlayerId = nextSpectatedPlayerId;
+                end
+
+                -- Teleports the spectator towards the spectated player
+                local spectatedPlayer = System.GetEntity(player.SCAAMBRSpectatedPlayerId);
+                player.player:TeleportTo(spectatedPlayer:GetWorldPos());
+
+                local data = {
+                    PlayerId = playerId,
+                    SpectatedPlayerId = player.SCAAMBRSpectatedPlayerId,
+                    Operation = 'changespectate'
+                };
+        
+                Script.SetTimerForFunction(500, 'SCAAMBRSpectatePlayerAfterDelay', data);
+            else
+
+                -- Editor or server specific actions
+                if (System.IsEditor()) then
+                    g_gameRules.game:SendTextMessage(0, g_localActorId, "There's no more players to spectate");
+                else
+                    g_gameRules.game:SendTextMessage(0, playerId, "There's no more players to spectate");
+                end
+            end
+        else
+
+            -- Editor or server specific actions
+            if (System.IsEditor()) then
+                g_gameRules.game:SendTextMessage(0, g_localActorId, "A game hasn't started yet");
+            else
+                g_gameRules.game:SendTextMessage(0, playerId, "A game hasn't started yet");
+            end
+        end
+    elseif (action == 'stopspectate') then
+        local playerChannel = player.actor:GetChannel();
+
+        -- Teleports the player to the latest recorded position
+        player.player:TeleportTo(player.SCAAMBRLastPosition);
+
+        -- Reenable physics and switches back to the player model
+        player:EnablePhysics(true);
+        player:LoadObject(0, player.SCAAMBROriginalCGF);
+        player.allClients:SCAAMBRManageSpectatePlayer(playerId, 'unhide');
+        player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, playerId, 'stopspectate');
+
+        -- Resets the spectator values
+        player.SCAAMBRLastPosition = nil;
+        player.SCAAMBRSpectatedPlayerId = nil;
+    end
+end
+
+-- SCAAMBRSpectatePlayerAfterDelay
+-- Starts spectating the player after a delay of 0.5s
+function SCAAMBRSpectatePlayerAfterDelay(data)
+    local player = System.GetEntity(data.PlayerId);
+    local playerChannel = player.actor:GetChannel();
+    player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, data.SpectatedPlayerId, data.Operation);
+end
+
+-- SCAAMBRSwitchSpectators
+-- Switches spectators after a delay of 3s
+function SCAAMBRSwitchSpectators(playerId)
+    local data = {
+        PlayerId = playerId
+    };
+
+    Script.SetTimerForFunction(3000, 'SCAAMBRSwitchSpectatorsAfterDelay', data);
+end
+
+-- SCAAMBRSwitchSpectatorsAfterDelay
+-- Gets the players that were spectating a killed, winner or disconnected player and switches them
+-- to another player or closes the spectator mode if there's no more players to spectate
+function SCAAMBRSwitchSpectatorsAfterDelay(data)
+    
+    -- Gets the player list
+    local listOfPlayers = CryAction.GetPlayerList();
+
+    -- Checks if there's other players to spectate
+    if (table.getn(SCAAMBRSpectatorPlayerList) > 1) then
+        for key, player in pairs(listOfPlayers) do
+            if (player.SCAAMBRSpectatedPlayerId == data.PlayerId) then
+                SCAAMBRManageSpectate(player.id, 'changespectate', 'right');
+            end
+        end
+    else
+        for key, player in pairs(listOfPlayers) do
+            if (player.SCAAMBRSpectatedPlayerId == data.PlayerId) then
+                SCAAMBRManageSpectate(player.id, 'stopspectate', '');
+            end
         end
     end
-    Log('Finished Manage spectate')
+end
+
+-- SCAAMBRCheckOnDisconnectedSpectatedPlayers
+-- Switches spectators from disconnected players
+function SCAAMBRCheckOnDisconnectedSpectatedPlayers()
+    local listOfDisconnectedPlayers = {};
+
+    -- Gets a list of disconnected players
+    for key, playerId in pairs(SCAAMBRSpectatorPlayerList) do
+        player = System.GetEntity(playerId);
+
+        if (not player) then
+            table.insert(listOfDisconnectedPlayers, playerId);
+            table.remove(SCAAMBRSpectatorPlayerList, key);
+        end
+    end
+
+    -- Gets the player list
+    local listOfPlayers = CryAction.GetPlayerList();
+
+    for key, player in pairs(listOfPlayers) do
+        if (player.SCAAMBRSpectatedPlayerId ~= nil and IsInsideTable(listOfDisconnectedPlayers, player.SCAAMBRSpectatedPlayerId)) then
+            
+            -- Checks if there's other players to spectate
+            if (table.getn(SCAAMBRSpectatorPlayerList) > 1) then
+                SCAAMBRManageSpectate(player.id, 'changespectate', 'right');
+            else
+                SCAAMBRManageSpectate(player.id, 'stopspectate', '');
+            end
+        end
+    end
 end
 
 -- SCAAMBRSpectatePlayerTimer
@@ -6781,11 +6995,19 @@ RegisterCallbackReturnAware(
                 -- Sets the damage dealt to 0
                 player.SCAAMBRDamageDealt = 0;
 
-                -- Sets the spectating player to nil
-                player.SCAAMBRIsSpectating = nil;
+                -- Sets the spectating player id to nil
+                player.SCAAMBRSpectatedPlayerId = nil;
 
                 -- Sets the spectating last position of the player to nil
                 player.SCAAMBRLastPosition = nil;
+
+                -- Sets the player original model to return to it once it stops spectating
+                player.SCAAMBROriginalCGF = nil;
+                if (player:GetMaterial(0) == 'objects/characters/players/male/skeleton/skeleton_male') then
+                    player.SCAAMBROriginalCGF = 'Objects/Characters/players/male/human_male.cdf';
+                else
+                    player.SCAAMBROriginalCGF = 'Objects/Characters/players/female/human_female.cdf';
+                end
 
                 -- Assign custom BR keybinds to players
                 local playerChannel = player.actor:GetChannel();
@@ -6859,11 +7081,19 @@ RegisterCallbackReturnAware(
                 -- Sets the damage dealt to 0
                 player.SCAAMBRDamageDealt = 0;
 
-                -- Sets the spectating player to nil
-                player.SCAAMBRIsSpectating = nil;
+                -- Sets the spectating player id to nil
+                player.SCAAMBRSpectatedPlayerId = nil;
 
                 -- Sets the spectating last position of the player to nil
                 player.SCAAMBRLastPosition = nil;
+
+                -- Sets the player original model to return to it once it stops spectating
+                player.SCAAMBROriginalCGF = nil;
+                if (player:GetMaterial(0) == 'objects/characters/players/male/skeleton/skeleton_male') then
+                    player.SCAAMBROriginalCGF = 'Objects/Characters/players/male/human_male.cdf';
+                else
+                    player.SCAAMBROriginalCGF = 'Objects/Characters/players/female/human_female.cdf';
+                end
 
                 -- Assign custom BR keybinds to players
                 local playerChannel = player.actor:GetChannel();
@@ -7819,9 +8049,9 @@ ChatCommands["!loadobject"] = function(playerId, command)
     local player = System.GetEntity(playerId);
     player:LoadObject(0, command);
     if (command == 'Objects/SCAAMCuartas/BattleRoyaleSpectator/spectator.cgf') then
-        player.allClients:SCAAMBRManageSpectatePlayer(player.id, 'hide', player:GetWorldPos());
+        player.allClients:SCAAMBRManageSpectatePlayer(player.id, 'hide');
     else
-        player.allClients:SCAAMBRManageSpectatePlayer(player.id, 'unhide', player:GetWorldPos());
+        player.allClients:SCAAMBRManageSpectatePlayer(player.id, 'unhide');
     end
     -- !loadobject Objects/SCAAMCuartas/BattleRoyaleSpectator/spectator.cgf
 end
@@ -7855,8 +8085,8 @@ ChatCommands["!spectate"] = function(playerId, command)
 
         player:EnablePhysics(false);
         player:LoadObject(0, 'Objects/SCAAMCuartas/BattleRoyaleSpectator/spectator.cgf');
-        player.allClients:SCAAMBRManageSpectatePlayer(spectatedPlayer.id, 'hide', player:GetWorldPos());
-        player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, spectatedPlayer.id, 'spectate', player:GetWorldPos());
+        player.allClients:SCAAMBRManageSpectatePlayer(spectatedPlayer.id, 'hide');
+        player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, spectatedPlayer.id, 'spectate');
     else
 
         -- Editor or server specific actions
@@ -7890,7 +8120,7 @@ ChatCommands["!spectateglobal"] = function(playerId, command)
 
         player:EnablePhysics(false);
         player:LoadObject(0, 'Objects/SCAAMCuartas/BattleRoyaleSpectator/spectator.cgf');
-        player.allClients:SCAAMBRManageSpectatePlayer(spectatedPlayer.id, 'hide', player:GetWorldPos());
+        player.allClients:SCAAMBRManageSpectatePlayer(spectatedPlayer.id, 'hide');
 
         player.player:TeleportTo(spectatedPlayer:GetWorldPos());
 
@@ -7911,14 +8141,6 @@ ChatCommands["!spectateglobal"] = function(playerId, command)
     end
 end
 
--- SCAAMBRSpectatePlayerAfterDelay
--- Starts spectating the player after a delay of 1s
-function SCAAMBRSpectatePlayerAfterDelay(data)
-    local player = System.GetEntity(data.PlayerId);
-    local playerChannel = player.actor:GetChannel();
-    player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, data.SpectatedPlayerId, 'spectate', player:GetWorldPos());
-end
-
 -- !stopspectate <subcommand>
 -- Uses the !stopspectate command to stop spectating a player
 ChatCommands["!stopspectate"] = function(playerId, command)
@@ -7933,8 +8155,8 @@ ChatCommands["!stopspectate"] = function(playerId, command)
         player.SCAAMBRIsSpectating = false;
 
         player:EnablePhysics(true);
-        player:LoadObject(0, 'Objects/Characters/players/male/human_male.cdf');
-        player.allClients:SCAAMBRManageSpectatePlayer(playerId, 'unhide', player:GetWorldPos());
-        player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, playerId, 'stopspectate', player:GetWorldPos());
+        player:LoadObject(0, player.SCAAMBROriginalCGF);
+        player.allClients:SCAAMBRManageSpectatePlayer(playerId, 'unhide');
+        player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, playerId, 'stopspectate');
     end
 end

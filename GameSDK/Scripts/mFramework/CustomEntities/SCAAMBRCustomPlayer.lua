@@ -29,6 +29,9 @@ local SCAAMBRCustomPlayer = {
                 System.AddKeyBind('backspace', 'SCAAMBRMenu backspace');
                 System.AddKeyBind('escape', 'SCAAMBRMenu escape');
                 System.AddKeyBind('tilde', 'SCAAMBRMenu tilde');
+                System.AddKeyBind('delete', 'SCAAMBRMenu delete');
+                System.AddKeyBind('left', 'SCAAMBRMenu left');
+                System.AddKeyBind('right', 'SCAAMBRMenu right');
 
                 -- Sets the custom client variables
                 self.SCAAMBRCurrentGun = nil;
@@ -37,11 +40,21 @@ local SCAAMBRCustomPlayer = {
                 self.SCAAMBRToggledUI = false;
                 self.SCAAMBRToggledLobbyUI = true;
                 self.SCAAMBRToggledMapUI = false;
+                self.SCAAMBRToggledSpectatorUI = false;
                 self.SCAAMBRFrozenPlayer = false;
                 self.SCAAMBRMenuState = 'idle';
                 self.SCAAMBRUIBuiltJSON = '';
                 self.SCAAMBRUIBuiltChunkCounter = 0;
                 self.SCAAMBRItemCheckCounter = 0;
+
+                self.SCAAMBRSpectatedPlayerId = nil;
+                -- Sets the player original model to return to it once it stops spectating
+                self.SCAAMBROriginalCGF = nil;
+                if (self:GetMaterial(0) == 'objects/characters/players/male/skeleton/skeleton_male') then
+                    self.SCAAMBROriginalCGF = 'Objects/Characters/players/male/human_male.cdf';
+                else
+                    self.SCAAMBROriginalCGF = 'Objects/Characters/players/female/human_female.cdf';
+                end
                 -- self.SCAAMBRSpectatedPlayer = nil;
                 -- self.SCAAMBRToggledSpectateUI = false;
                 -- self.SCAAMBRSavedOwnPosition = {};
@@ -108,48 +121,10 @@ local SCAAMBRCustomPlayer = {
             end,
 
             -- SCAAMBRManageSpectatePlayer
-            -- Spectates a player, testing
-            SCAAMBRManageSpectatePlayer = function (self, spectatedPlayerId, action, lastPosition)
-                if (action == 'spectate') then
-                    self.SCAAMBRSpectatedPlayerId = spectatedPlayerId;
-                    self:SCAAMBRStartSpectatePlayer();
-                elseif (action == 'stopspectate') then
-                    self.SCAAMBRSpectatedPlayerId = nil;
-                elseif (action == 'hide') then
-                    self:EnablePhysics(false);
-                    self:LoadObject(0, 'Objects/SCAAMCuartas/BattleRoyaleSpectator/spectator.cgf');
-                elseif (action == 'unhide') then
-                    self:EnablePhysics(true);
-                    self:LoadObject(0, 'Objects/Characters/players/male/human_male.cdf');
-                end
+            -- Manages all the spectator functions depending on what comes from the server
+            SCAAMBRManageSpectatePlayer = function (self, spectatedPlayerId, action)
+                self:SCAAMBRManageTheSpectatePlayer(spectatedPlayerId, action);
             end
-
-            -- -- SCAAMBRWatchThePlayer
-            -- -- Spectates a player if the player is InLobby
-            -- SCAAMBRWatchThePlayer = function (self, playerPos, ownPlayerPos)
-            --     Log('Entered to spectate player client function')
-            --     self.SCAAMBRSavedOwnPosition = ownPlayerPos;
-            --     self:SetWorldPos(playerPos);
-            --     local listOfPlayers = System.GetEntitiesInSphereByClass(playerPos, 3, 'Player');
-
-            --     -- Checks if it found a client player in the position other than themselves
-            --     if (table.getn(listOfPlayers > 1)) then
-            --         for key, player in pairs(listOfPlayers) do
-            --             if (g_localActorId ~= player.id) then
-            --                 self.SCAAMBRSpectatedPlayerId = player.id;
-            --                 break;
-            --             end
-            --         end
-            --     end
-
-            --     -- If it found a player it starts the process to spectate
-            --     if (self.SCAAMBRSpectatedPlayerId ~= nil) then
-            --         SCAAMBRUIFunctions:DeactivateGameSpectateFilters();
-            --         SCAAMBRManageSpectatePlayerTimer();
-            --         self.SCAAMBRToggledSpectateUI = true;
-            --     end
-            --     Log('finished spectate player client function')
-            -- end
         },
         Server = {
             -- SCAAMBRStimPackByKey
@@ -182,11 +157,11 @@ local SCAAMBRCustomPlayer = {
                 SCAAMBRSetLocation(playerId, location);
             end,
 
-            -- -- SCAAMBRUnspectatePlayer
-            -- -- Stops the spectate feature
-            -- SCAAMBRManageSpectatePlayer = function (self, playerId, action, value)
-            --     SCAAMBRManageSpectate(playerId, action, value);
-            -- end
+            -- SCAAMBRManageSpectatePlayer
+            -- Manages the spectator mode server side
+            SCAAMBRManageSpectatePlayer = function (self, playerId, action, value)
+                SCAAMBRManageSpectate(playerId, action, value);
+            end
         },
 
         -- SCAAMBRToggleUIClient
@@ -351,6 +326,44 @@ local SCAAMBRCustomPlayer = {
             self.SCAAMBRUIBuiltChunkCounter = 0;
         end,
 
+        -- SCAAMBRManageTheSpectatePlayer
+        -- Manages all the spectator functions depending on what comes from the server
+        SCAAMBRManageTheSpectatePlayer = function (self, spectatedPlayerId, action)
+            if (action == 'spectate') then
+                self.SCAAMBRSpectatedPlayerId = spectatedPlayerId;
+                self.SCAAMBRToggledSpectatorUI = true;
+
+                -- Gets the name of the player being spectated
+                local spectatedPlayer = System.GetEntity(spectatedPlayerId);
+                local spectatedPlayerName = spectatedPlayer:GetName();
+
+                -- Opens the spectator mode UI
+                SCAAMBRUIFunctions:OpenSpectatorMode();
+
+                -- Sets in the UI the name of the player being spectated
+                SCAAMBRUIFunctions:SetSpectatedNameAfterDelay(spectatedPlayerName);
+
+                self:SCAAMBRStartSpectatePlayer();
+            elseif (action == 'changespectate') then
+                self.SCAAMBRSpectatedPlayerId = spectatedPlayerId;
+
+                -- Gets the name of the player being spectated
+                local spectatedPlayer = System.GetEntity(spectatedPlayerId);
+                local spectatedPlayerName = spectatedPlayer:GetName();
+                UIAction.CallFunction('mod_SCAAMBRStatsUI', 0, 'SetSpectatedPlayerName', spectatedPlayerName);
+            elseif (action == 'stopspectate') then
+                SCAAMBRUIFunctions:CloseSpectatorMode();
+                self.SCAAMBRSpectatedPlayerId = nil;
+                self.SCAAMBRToggledSpectatorUI = false;
+            elseif (action == 'hide') then
+                self:EnablePhysics(false);
+                self:LoadObject(0, 'Objects/SCAAMCuartas/BattleRoyaleSpectator/spectator.cgf');
+            elseif (action == 'unhide') then
+                self:EnablePhysics(true);
+                self:LoadObject(0, self.SCAAMBROriginalCGF);
+            end
+        end,
+
         -- SCAAMBRStartSpectatePlayer
         -- Starts the timer to spectate a player
         SCAAMBRStartSpectatePlayer = function (self)
@@ -362,9 +375,14 @@ local SCAAMBRCustomPlayer = {
         SCAAMBRSpectateAfterDelay = function (self)
             if (self.SCAAMBRSpectatedPlayerId ~= nil) then
                 local spectatedPlayer = System.GetEntity(self.SCAAMBRSpectatedPlayerId);
-                self:SetWorldPos(spectatedPlayer:GetWorldPos());
 
-                self:SCAAMBRStartSpectatePlayer();
+                if (spectatedPlayer and spectatedPlayer.player) then
+                    self:SetWorldPos(spectatedPlayer:GetWorldPos());
+
+                    self:SCAAMBRStartSpectatePlayer();
+                else
+                    self:SCAAMBRStartSpectatePlayer();
+                end
             end
         end
     },
@@ -376,7 +394,7 @@ local SCAAMBRCustomPlayer = {
             SCAAMBRToggleUI = { RELIABLE_ORDERED, POST_ATTACH, STRING, BOOL },
             SCAAMBRChangeTheStates = { RELIABLE_ORDERED, POST_ATTACH, STRING, STRING },
             SCAAMBRBuildTheDataUI = { RELIABLE_ORDERED, PRE_ATTACH, STRING, BOOL, INT16, INT16, STRING, STRING, STRING, STRING },
-            SCAAMBRManageSpectatePlayer = { RELIABLE_ORDERED, PRE_ATTACH, ENTITYID, STRING, VEC3 }
+            SCAAMBRManageSpectatePlayer = { RELIABLE_ORDERED, PRE_ATTACH, ENTITYID, STRING }
         },
         ServerMethods = {
             SCAAMBRStimPackByKey = { RELIABLE_ORDERED, POST_ATTACH },
@@ -384,7 +402,7 @@ local SCAAMBRCustomPlayer = {
             SCAAMBRGetTheMenuDat = { RELIABLE_ORDERED, POST_ATTACH, ENTITYID, STRING },
             SCAAMBRRequestDat = { RELIABLE_ORDERED, PRE_ATTACH, ENTITYID, INT16, STRING },
             SCAAMBRALocationDat = { RELIABLE_ORDERED, POST_ATTACH, ENTITYID, STRING },
-            -- SCAAMBRManageSpectatePlayer = { RELIABLE_ORDERED, POST_ATTACH, ENTITYID, STRING, STRING }
+            SCAAMBRManageSpectatePlayer = { RELIABLE_ORDERED, POST_ATTACH, ENTITYID, STRING, STRING }
         },
         ServerProperties = {}
     }
