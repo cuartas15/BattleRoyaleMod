@@ -55,6 +55,8 @@ local SCAAMBRCustomPlayer = {
                 else
                     self.SCAAMBROriginalCGF = 'Objects/Characters/players/female/human_female.cdf';
                 end
+
+                self.SCAAMBRAntiButtonSpamCounter = 0;
                 -- self.SCAAMBRSpectatedPlayer = nil;
                 -- self.SCAAMBRToggledSpectateUI = false;
                 -- self.SCAAMBRSavedOwnPosition = {};

@@ -5501,6 +5501,10 @@ end
 function SCAAMBRPlayerGeneralUpdate(dummyVar)
     local player = System.GetEntity(g_localActorId);
 
+    if (player.SCAAMBRAntiButtonSpamCounter > 0) then
+        player.SCAAMBRAntiButtonSpamCounter = player.SCAAMBRAntiButtonSpamCounter - 20;
+    end
+
     -- Checks if the UI was initialized. It doesn't make sense to do something if the player is
     -- InLobby when the UI's haven't been displayed yet
     if (player.SCAAMBRToggledUI == true and player.SCAAMBRToggledLobbyUI == false) then
@@ -6361,19 +6365,29 @@ function SCAAMBRManageMenu(keyString)
             -- Checks if the player can perform menu actions
             if (player.SCAAMBRToggledLobbyUI == true and player.SCAAMBRToggledMapUI == false and player.SCAAMBRToggledUI == true) then
                 
-                if (player.SCAAMBRToggledSpectatorUI == false) then
-                    player.server:SCAAMBRManageSpectatePlayer(g_localActorId, 'spectate', '');
-                elseif (player.SCAAMBRToggledSpectatorUI == true) then
-                    SCAAMBRUIFunctions:CloseSpectatorMode();
-                    player.server:SCAAMBRManageSpectatePlayer(g_localActorId, 'stopspectate', '');
-                    player.SCAAMBRToggledSpectatorUI = false;
+                -- Checks if the player is not spamming the spectate keys
+                if (player.SCAAMBRAntiButtonSpamCounter <= 0) then
+                    if (player.SCAAMBRToggledSpectatorUI == false) then
+                        player.server:SCAAMBRManageSpectatePlayer(g_localActorId, 'spectate', '');
+                        player.SCAAMBRAntiButtonSpamCounter = 2000;
+                    elseif (player.SCAAMBRToggledSpectatorUI == true) then
+                        SCAAMBRUIFunctions:CloseSpectatorMode();
+                        player.server:SCAAMBRManageSpectatePlayer(g_localActorId, 'stopspectate', '');
+                        player.SCAAMBRToggledSpectatorUI = false;
+                        player.SCAAMBRAntiButtonSpamCounter = 2000;
+                    end
                 end
             end
         elseif (keyString == 'left' or keyString == 'right') then
 
             -- Checks if the player can perform menu actions
             if (player.SCAAMBRToggledLobbyUI == true and player.SCAAMBRToggledMapUI == false and player.SCAAMBRToggledSpectatorUI == true and player.SCAAMBRToggledUI == true) then
-                player.server:SCAAMBRManageSpectatePlayer(g_localActorId, 'changespectate', keyString);
+                
+                -- Checks if the player is not spamming the spectate keys
+                if (player.SCAAMBRAntiButtonSpamCounter <= 0) then
+                    player.server:SCAAMBRManageSpectatePlayer(g_localActorId, 'changespectate', keyString);
+                    player.SCAAMBRAntiButtonSpamCounter = 2000;
+                end
             end
         elseif (keyString == 'escape') then
 
@@ -6387,11 +6401,14 @@ function SCAAMBRManageMenu(keyString)
                     player.SCAAMBRMenuState = 'idle';
                 end
             elseif (player.SCAAMBRToggledLobbyUI == true and player.SCAAMBRToggledSpectatorUI == true and player.SCAAMBRToggledUI == true) then
+                if (player.SCAAMBRAntiButtonSpamCounter <= 0) then
 
-                -- Goes from spectator mode to normal mode
-                SCAAMBRUIFunctions:CloseSpectatorMode();
-                player.server:SCAAMBRManageSpectatePlayer(g_localActorId, 'stopspectate', '');
-                player.SCAAMBRToggledSpectatorUI = false;
+                    -- Goes from spectator mode to normal mode
+                    SCAAMBRUIFunctions:CloseSpectatorMode();
+                    player.server:SCAAMBRManageSpectatePlayer(g_localActorId, 'stopspectate', '');
+                    player.SCAAMBRToggledSpectatorUI = false;
+                    player.SCAAMBRAntiButtonSpamCounter = 2000;
+                end
             elseif (player.SCAAMBRToggledMapUI == true and player.SCAAMBRToggledUI == true) then
 
                 -- Closes the map during game
@@ -6815,13 +6832,14 @@ function SCAAMBRManageSpectate(playerId, action, value)
         local playerChannel = player.actor:GetChannel();
 
         -- Teleports the player to the latest recorded position
-        player.player:TeleportTo(player.SCAAMBRLastPosition);
+        player.player:TeleportTo(SCAAMBRLobbyProperties.Positions[math.random(table.getn(SCAAMBRLobbyProperties.Positions))].Position);
 
-        -- Reenable physics and switches back to the player model
-        player:EnablePhysics(true);
-        player:LoadObject(0, player.SCAAMBROriginalCGF);
-        player.allClients:SCAAMBRManageSpectatePlayer(playerId, 'unhide');
-        player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, playerId, 'stopspectate');
+        local data = {
+            PlayerId = playerId,
+            Operation = 'stopspectate'
+        };
+
+        Script.SetTimerForFunction(500, 'SCAAMBRSpectatePlayerAfterDelay', data);
 
         -- Resets the spectator values
         player.SCAAMBRLastPosition = nil;
@@ -6834,7 +6852,17 @@ end
 function SCAAMBRSpectatePlayerAfterDelay(data)
     local player = System.GetEntity(data.PlayerId);
     local playerChannel = player.actor:GetChannel();
-    player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, data.SpectatedPlayerId, data.Operation);
+
+    if (data.Operation == 'stopspectate') then
+
+        -- Reenable physics and switches back to the player model
+        player:EnablePhysics(true);
+        player:LoadObject(0, player.SCAAMBROriginalCGF);
+        player.allClients:SCAAMBRManageSpectatePlayer(data.PlayerId, 'unhide');
+        player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, data.PlayerId, 'stopspectate');
+    else
+        player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, data.SpectatedPlayerId, data.Operation);
+    end
 end
 
 -- SCAAMBRSwitchSpectators
@@ -8158,7 +8186,7 @@ ChatCommands["!stopspectate"] = function(playerId, command)
     if (player.SCAAMBRIsSpectating and player.SCAAMBRIsSpectating == true) then
         local playerChannel = player.actor:GetChannel();
 
-        player.player:TeleportTo(player.SCAAMBRLastPosition);
+        player.player:TeleportTo(SCAAMBRLobbyProperties.Positions[math.random(table.getn(SCAAMBRLobbyProperties.Positions))].Position);
 
         player.SCAAMBRLastPosition = nil;
         player.SCAAMBRIsSpectating = false;
