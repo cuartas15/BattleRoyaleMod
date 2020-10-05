@@ -3556,9 +3556,22 @@ SCAAMBRFillCleanupTable();
 -- Stats and kill feed tables
 SCAAMBRGameStats = {};
 
+-- SCAAMBRPreInitModules
+-- Manage UI reload stuff
+function SCAAMBRPreInitModules()
+    if (not CryAction.IsServer()) then
+        Log('SCAAMBattleRoyale >> Called client UI init from not IsServer');
+        ReloadModUIOnlyOnce();
+    end
+end
+
 -- SCAAMNotesInitLoading
 -- Manage storage stuff (Based on Theros' mFramework)
 function SCAAMBRInitModules()
+    if (DynamicServer) then
+        DynamicServer:Stop();
+    end
+
     SCAAMBRJSON = require('JSON');
     SCAAMBRDatabase = mFramework.PersistantStorage:Collection('SCAAMBattleRoyaleCollection');
     SCAAMBRPlayerDatabase = mFramework.PersistantStorage:Collection('SCAAMBattleRoyalePlayerCollection');
@@ -3885,6 +3898,12 @@ function SCAAMBRInitGame(circleId)
             -- Toggles on the BR UI
             local playerChannel = player.actor:GetChannel();
             player.onClient:SCAAMBRChangeTheStates(playerChannel, 'gotogame', SCAAMBRJSON.stringify(indicatorsData));
+
+            -- Makes player unrelevant
+            player:SetIsNeverNetRelevant(true);
+
+            -- Calls function to make it relevant again after a delay
+            Script.SetTimerForFunction(750, 'SCAAMBRSetPlayerRelevant', player);
         end
     end
 
@@ -3917,6 +3936,12 @@ function SCAAMBRInitGame(circleId)
     else
         g_gameRules.game:SendTextMessage(0, 0, 'Circle will start closing in ' .. tostring(SCAAMBattleRoyaleProperties['Phase' .. tostring(SCAAMBattleRoyaleProperties.CurrentPhase)].CooldownTime) .. ' seconds');
     end
+end
+
+-- SCAAMBRSetPlayerRelevant
+-- Sets the player relevant to other players after a delay
+function SCAAMBRSetPlayerRelevant(player)
+    player:SetIsNeverNetRelevant(false);
 end
 
 -- SCAAMBRUpdateStatsUIAfterDelay
@@ -4153,15 +4178,20 @@ function SCAAMBRSpawnGameItems()
         end
 
         vehicle = System.SpawnEntity(spawnParams);
-        local JSONText = '{"skin":"' .. skinString .. '","dieselfuel":1000000,"oil":600000,"is":{"cats":[]}}';
-        vehicle.vehicle:ReadOrRestoreJSON(true, JSONText);
-        ISM.GiveItem(vehicle.id, 'SparkPlugs', false, vehicle.id, 'sparkplugs00');
-        ISM.GiveItem(vehicle.id, 'DriveBelt', false, vehicle.id, 'drivebelt00');
-        ISM.GiveItem(vehicle.id, 'CarBattery', false, vehicle.id, 'carbattery00');
-        ISM.GiveItem(vehicle.id, 'Wheel', false, vehicle.id, 'wheel00');
-        ISM.GiveItem(vehicle.id, 'Wheel', false, vehicle.id, 'wheel01');
-        ISM.GiveItem(vehicle.id, 'Wheel', false, vehicle.id, 'wheel02');
-        ISM.GiveItem(vehicle.id, 'Wheel', false, vehicle.id, 'wheel03');
+        local JSONText = '{"skin":"' .. skinString .. '","dieselfuel":1000000,"oil":600000,"is":{"cats":[{"carbattery":[{"slot":0,"name":"CarBattery","health":100}]},{"drivebelt":[{"slot":0,"name":"DriveBelt","health":100}]},{"sparkplugs":[{"slot":0,"name":"SparkPlugs","health":100}]},{"wheel":[{"slot":0,"name":"Wheel"},{"slot":1,"name":"Wheel"},{"slot":2,"name":"Wheel"},{"slot":3,"name":"Wheel"}]}]}}';
+        local vehicleData = {
+            id = vehicle.id,
+            equipment = JSONText
+        };
+
+        Script.SetTimerForFunction(500, 'SCAAMBREquipVehicleAfterDelay', vehicleData);
+        -- ISM.GiveItem(vehicle.id, 'SparkPlugs', false, vehicle.id, 'sparkplugs00');
+        -- ISM.GiveItem(vehicle.id, 'DriveBelt', false, vehicle.id, 'drivebelt00');
+        -- ISM.GiveItem(vehicle.id, 'CarBattery', false, vehicle.id, 'carbattery00');
+        -- ISM.GiveItem(vehicle.id, 'Wheel', false, vehicle.id, 'wheel00');
+        -- ISM.GiveItem(vehicle.id, 'Wheel', false, vehicle.id, 'wheel01');
+        -- ISM.GiveItem(vehicle.id, 'Wheel', false, vehicle.id, 'wheel02');
+        -- ISM.GiveItem(vehicle.id, 'Wheel', false, vehicle.id, 'wheel03');
 
         carPositionsFractionCount = carPositionsFractionCount - 1;
     end
@@ -4294,6 +4324,13 @@ function SCAAMBRSpawnGameItems()
         
         groundPositionsFractionCount = groundPositionsFractionCount - 1;
     end
+end
+
+-- SCAAMBREquipVehicleAfterDelay
+-- Fills a vehicle with their parts after a delay
+function SCAAMBREquipVehicleAfterDelay(data)
+    local vehicle = System.GetEntity(data.id);
+    vehicle.vehicle:ReadOrRestoreJSON(true, data.equipment, false);
 end
 
 -- SCAAMBRGetRandomGroundContent
@@ -6298,6 +6335,7 @@ function SCAAMBRUIFunctions:DeactivateGameSpectateFilters()
     ActionMapManager.EnableActionFilter('no_move', true);
     ActionMapManager.EnableActionFilter('inventory', true);
     ActionMapManager.EnableActionFilter('ladder_only', true);
+    ActionMapManager.EnableActionFilter('cutscene_no_player', true);
 end
 
 -- SCAAMBRUIFunctions:ReactivateGameSpectateFilters
@@ -6306,6 +6344,7 @@ function SCAAMBRUIFunctions:ReactivateGameSpectateFilters()
     ActionMapManager.EnableActionFilter('no_move', false);
     ActionMapManager.EnableActionFilter('inventory', false);
     ActionMapManager.EnableActionFilter('ladder_only', false);
+    ActionMapManager.EnableActionFilter('cutscene_no_player', false);
 end
 
 -- SCAAMBRManageMenu
@@ -6378,6 +6417,8 @@ function SCAAMBRManageMenu(keyString)
                     end
                 end
             end
+        elseif (keyString == 'end') then
+            ActionMapManager.EnableActionFilter(player.SCAAMBRFilter, false);
         elseif (keyString == 'left' or keyString == 'right') then
 
             -- Checks if the player can perform menu actions
@@ -6725,22 +6766,23 @@ function SCAAMBRManageSpectate(playerId, action, value)
                 player.SCAAMBRLastPosition = player:GetWorldPos();
                 player.SCAAMBRSpectatedPlayerId = SCAAMBRSpectatorPlayerList[1];
 
-                -- Gets the spectated player entity
+                -- Disables relevance, physics and changes de model
+                player:SetIsNeverNetRelevant(true);
+                -- player:EnablePhysics(false);
+                -- player:LoadObject(0, 'Objects/SCAAMCuartas/BattleRoyaleSpectator/spectator.cgf');
+                player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, player.SCAAMBRSpectatedPlayerId, 'hide');
+
+                -- Teleports the player towards the spectated player
                 local spectatedPlayer = System.GetEntity(player.SCAAMBRSpectatedPlayerId);
-
-                -- Disables physics on the player and changes the model to the spectator's one
-                player:EnablePhysics(false);
-                player:LoadObject(0, 'Objects/SCAAMCuartas/BattleRoyaleSpectator/spectator.cgf');
-                player.allClients:SCAAMBRManageSpectatePlayer(player.SCAAMBRSpectatedPlayerId, 'hide');
-
-                player.player:TeleportTo(spectatedPlayer:GetWorldPos());
-
+                local spectatedPlayerPos = spectatedPlayer:GetWorldPos();
+                player.player:TeleportTo(spectatedPlayerPos);
+    
                 local data = {
                     PlayerId = playerId,
                     SpectatedPlayerId = player.SCAAMBRSpectatedPlayerId,
                     Operation = 'spectate'
                 };
-        
+
                 Script.SetTimerForFunction(500, 'SCAAMBRSpectatePlayerAfterDelay', data);
             else
 
@@ -6829,22 +6871,27 @@ function SCAAMBRManageSpectate(playerId, action, value)
             end
         end
     elseif (action == 'stopspectate') then
-        local playerChannel = player.actor:GetChannel();
-
-        -- Teleports the player to the latest recorded position
-        player.player:TeleportTo(SCAAMBRLobbyProperties.Positions[math.random(table.getn(SCAAMBRLobbyProperties.Positions))].Position);
-
         local data = {
             PlayerId = playerId,
             Operation = 'stopspectate'
         };
 
-        Script.SetTimerForFunction(500, 'SCAAMBRSpectatePlayerAfterDelay', data);
+        Script.SetTimerForFunction(500, 'SCAAMBRDisablePlayerAfterDelay', data);
 
         -- Resets the spectator values
-        player.SCAAMBRLastPosition = nil;
         player.SCAAMBRSpectatedPlayerId = nil;
     end
+end
+
+-- SCAAMBRDisablePlayerAfterDelay
+-- Disables physics on the player and changes the model to the spectator's one
+function SCAAMBRDisablePlayerAfterDelay(data)
+    local player = System.GetEntity(data.PlayerId);
+    local playerChannel = player.actor:GetChannel();
+
+    player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, data.PlayerId, 'stopspectate');
+
+    Script.SetTimerForFunction(300, 'SCAAMBRSpectatePlayerAfterDelay', data);
 end
 
 -- SCAAMBRSpectatePlayerAfterDelay
@@ -6856,10 +6903,13 @@ function SCAAMBRSpectatePlayerAfterDelay(data)
     if (data.Operation == 'stopspectate') then
 
         -- Reenable physics and switches back to the player model
-        player:EnablePhysics(true);
-        player:LoadObject(0, player.SCAAMBROriginalCGF);
-        player.allClients:SCAAMBRManageSpectatePlayer(data.PlayerId, 'unhide');
-        player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, data.PlayerId, 'stopspectate');
+        player:SetIsNeverNetRelevant(false);
+
+        -- player:EnablePhysics(true);
+        -- player:LoadObject(0, player.SCAAMBROriginalCGF);
+        player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, data.PlayerId, 'unhide');
+        player.player:TeleportTo(player.SCAAMBRLastPosition);
+        player.SCAAMBRLastPosition = nil;
     else
         player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, data.SpectatedPlayerId, data.Operation);
     end
@@ -7049,9 +7099,6 @@ RegisterCallbackReturnAware(
                 -- Assign custom BR keybinds to players
                 local playerChannel = player.actor:GetChannel();
                 player.onClient:SCAAMBRInitThePlayer(playerChannel);
-
-                -- Inits the custom UI support for players
-                player.onClient:SCAAMBRUIInit(playerChannel);
                 
                 -- Tries to teleport the player to a lobby spawn in hopes to fix the issue with the freeze
                 player:SetWorldPos(SCAAMBRLobbyProperties.Positions[math.random(table.getn(SCAAMBRLobbyProperties.Positions))].Position);
@@ -7217,8 +7264,6 @@ end
 -- GENERAL TODO:
 -- Try to execute the things that involve times in another thread in hopes to prevent the slowness
 -- Make Use of the new CVAR to disable player saving on inventory so InitPlayer and EquipPlayer can work properly and fix the frozen issue
--- Add custom context actions to armor and stim packs
--- Add Vehicles after the update drops
 -- Add logic for squad mode
 
 --------------------------------------------------------------------------------
@@ -7970,70 +8015,6 @@ ChatCommands["!ban"] = function(playerId, command)
     end
 end
 
--- !changetimer <subcommand>
--- Uses the !changetimer command with a subcommand to change the timer
-ChatCommands["!changetimer"] = function(playerId, command)
-    local player = System.GetEntity(playerId);
-    local steamId = player.player:GetSteam64Id();
-
-    -- Checks if the player has permissions to perform this command
-    if (string.match(System.GetCVar('g_gameRules_faction4_steamids'), steamId)) then
-        SCAAMBattleRoyalePlayerManagement.WaitingTimer = tonumber(command);
-
-        -- Editor or server specific actions
-        if (System.IsEditor()) then
-            g_gameRules.game:SendTextMessage(0, g_localActorId, 'Changed timer to ' .. tostring(command));
-        else
-            g_gameRules.game:SendTextMessage(0, playerId, 'Changed timer to ' .. tostring(command));
-        end
-    end
-end
-
--- -- !hide <subcommand>
--- -- Uses the !hide command with a subcommand to hide the player
--- ChatCommands["!hide"] = function(playerId, command)
---     local player = System.GetEntity(playerId);
---     local steamId = player.player:GetSteam64Id();
-
---     -- Checks if the player has permissions to perform this command
---     if (string.match(System.GetCVar('g_gameRules_faction4_steamids'), steamId)) then
---         player:Hide(tonumber(command));
-
---         -- Editor or server specific actions
---         if (System.IsEditor()) then
---             g_gameRules.game:SendTextMessage(0, g_localActorId, 'Hiding to ' .. tostring(command) .. ' worked?');
---         else
---             g_gameRules.game:SendTextMessage(0, playerId, 'Hiding to ' .. tostring(command) .. ' worked?');
---         end
---     end
--- end
-
--- -- !spectate <subcommand>
--- -- Uses the !spectate command with a subcommand to spawn an item in the world
--- ChatCommands["!spectate"] = function(playerId, command)
---     local player = System.GetEntity(playerId);
---     local listOfPlayers = CryAction.GetPlayerList();
---     local spectatedPlayer = nil;
---     local spectatedPlayerPos = {};
-
---     for key, player2 in pairs(listOfPlayers) do
---         if (playerId ~= player2.id) then
---             spectatedPlayer = player2.id;
---             spectatedPlayerPos = player2:GetWorldPos();
---             break;
---         end
---     end
-
---     if (spectatedPlayer ~= nil) then
---         player.SCAAMBRSavedPosition = player:GetWorldPos();
---         player:Hide(1);
-
---         local playerChannel = player.actor:GetChannel();
-
---         player.onClient:SCAAMBRSpectatePlayer(playerChannel, spectatedPlayerPos);
---     end
--- end
-
 -- !whois <subcommand>
 -- Uses the !whois command to see the player name and Id
 ChatCommands["!whois"] = function(playerId, command)
@@ -8080,120 +8061,134 @@ ChatCommands["!whois"] = function(playerId, command)
     end
 end
 
+-- !filter <subcommand>
+-- Uses the !filter command to change the player's cgf
+ChatCommands["!filter"] = function(playerId, command)
+    local player = System.GetEntity(playerId);
+    local playerChannel = player.actor:GetChannel();
+
+    local formedString = 'filter ' .. tostring(command);
+
+    player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, playerId, formedString);
+end
+
 -- !loadobject <subcommand>
 -- Uses the !loadobject command to change the player's cgf
-ChatCommands["!loadobject"] = function(playerId, command)
-    local player = System.GetEntity(playerId);
-    player:LoadObject(0, command);
-    if (command == 'Objects/SCAAMCuartas/BattleRoyaleSpectator/spectator.cgf') then
-        player.allClients:SCAAMBRManageSpectatePlayer(player.id, 'hide');
-    else
-        player.allClients:SCAAMBRManageSpectatePlayer(player.id, 'unhide');
-    end
-    -- !loadobject Objects/SCAAMCuartas/BattleRoyaleSpectator/spectator.cgf
-end
+-- ChatCommands["!loadobject"] = function(playerId, command)
+--     local player = System.GetEntity(playerId);
+--     player:LoadObject(0, command);
+--     if (command == 'Objects/SCAAMCuartas/BattleRoyaleSpectator/spectator.cgf') then
+--         player.allClients:SCAAMBRManageSpectatePlayer(player.id, 'hide');
+--     else
+--         player.allClients:SCAAMBRManageSpectatePlayer(player.id, 'unhide');
+--     end
+--     -- !loadobject Objects/SCAAMCuartas/BattleRoyaleSpectator/spectator.cgf
+-- end
 
 -- !spectate <subcommand>
 -- Uses the !spectate command to spectate a player in front
-ChatCommands["!spectate"] = function(playerId, command)
-    local player = System.GetEntity(playerId);
-    local spectatedPlayer = nil;
+-- ChatCommands["!spectate"] = function(playerId, command)
+--     local player = System.GetEntity(playerId);
+--     local spectatedPlayer = nil;
 
-    local vForwardOffset = {x=0, y=0, z=0};
-    local vPointingPosition = {x=0, y=0, z=0};
-    FastScaleVector(vForwardOffset, player:GetDirectionVector(), 1.0);
-    FastSumVectors(vPointingPosition, vForwardOffset, player:GetWorldPos());
+--     local vForwardOffset = {x=0, y=0, z=0};
+--     local vPointingPosition = {x=0, y=0, z=0};
+--     FastScaleVector(vForwardOffset, player:GetDirectionVector(), 1.0);
+--     FastSumVectors(vPointingPosition, vForwardOffset, player:GetWorldPos());
     
-    local spectatedPlayers = System.GetEntitiesInSphereByClass(vPointingPosition, 1, 'Player');
+--     local spectatedPlayers = System.GetEntitiesInSphereByClass(vPointingPosition, 1, 'Player');
     
-    if (table.getn(spectatedPlayers) > 0) then
-        for key, player2 in pairs(spectatedPlayers) do
-            if (player2.id ~= playerId) then
-                spectatedPlayer = player2;
-                break;
-            end
-        end
-    end
+--     if (table.getn(spectatedPlayers) > 0) then
+--         for key, player2 in pairs(spectatedPlayers) do
+--             if (player2.id ~= playerId) then
+--                 spectatedPlayer = player2;
+--                 break;
+--             end
+--         end
+--     end
 
-    if (spectatedPlayer ~= nil) then
-        local playerChannel = player.actor:GetChannel();
-        player.SCAAMBRIsSpectating = true;
-        player.SCAAMBRLastPosition = player:GetWorldPos();
+--     if (spectatedPlayer ~= nil) then
+--         local playerChannel = player.actor:GetChannel();
+--         player.SCAAMBRIsSpectating = true;
+--         player.SCAAMBRLastPosition = player:GetWorldPos();
 
-        player:EnablePhysics(false);
-        player:LoadObject(0, 'Objects/SCAAMCuartas/BattleRoyaleSpectator/spectator.cgf');
-        player.allClients:SCAAMBRManageSpectatePlayer(spectatedPlayer.id, 'hide');
-        player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, spectatedPlayer.id, 'spectate');
-    else
+--         player:SetIsNeverNetRelevant(true);
+--         player:EnablePhysics(false);
+--         player:LoadObject(0, 'Objects/SCAAMCuartas/BattleRoyaleSpectator/spectator.cgf');
+--         player.allClients:SCAAMBRManageSpectatePlayer(spectatedPlayer.id, 'hide');
+--         player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, spectatedPlayer.id, 'spectate');
+--     else
 
-        -- Editor or server specific actions
-        if (System.IsEditor()) then
-            g_gameRules.game:SendTextMessage(0, g_localActorId, 'No player found');
-        else
-            g_gameRules.game:SendTextMessage(0, playerId, 'No player found');
-        end
-    end
-end
+--         -- Editor or server specific actions
+--         if (System.IsEditor()) then
+--             g_gameRules.game:SendTextMessage(0, g_localActorId, 'No player found');
+--         else
+--             g_gameRules.game:SendTextMessage(0, playerId, 'No player found');
+--         end
+--     end
+-- end
 
 -- !spectateglobal <subcommand>
 -- Uses the !spectateglobal command to spectate a player globally
-ChatCommands["!spectateglobal"] = function(playerId, command)
-    local player = System.GetEntity(playerId);
-    local spectatedPlayer = nil;
+-- ChatCommands["!spectateglobal"] = function(playerId, command)
+--     local player = System.GetEntity(playerId);
+--     local spectatedPlayer = nil;
 
-    local players = CryAction.GetPlayerList();
+--     local players = CryAction.GetPlayerList();
 
-    for key, player2 in pairs(players) do
-        if (player2.id ~= playerId) then
-            spectatedPlayer = player2;
-            break;
-        end
-    end
+--     for key, player2 in pairs(players) do
+--         if (player2.id ~= playerId) then
+--             spectatedPlayer = player2;
+--             break;
+--         end
+--     end
 
-    if (spectatedPlayer ~= nil) then
-        local playerChannel = player.actor:GetChannel();
-        player.SCAAMBRIsSpectating = true;
-        player.SCAAMBRLastPosition = player:GetWorldPos();
+--     if (spectatedPlayer ~= nil) then
+--         local playerChannel = player.actor:GetChannel();
+--         player.SCAAMBRIsSpectating = true;
+--         player.SCAAMBRLastPosition = player:GetWorldPos();
 
-        player:EnablePhysics(false);
-        player:LoadObject(0, 'Objects/SCAAMCuartas/BattleRoyaleSpectator/spectator.cgf');
-        player.allClients:SCAAMBRManageSpectatePlayer(spectatedPlayer.id, 'hide');
+--         player:SetIsNeverNetRelevant(true);
+--         player:EnablePhysics(false);
+--         player:LoadObject(0, 'Objects/SCAAMCuartas/BattleRoyaleSpectator/spectator.cgf');
+--         player.allClients:SCAAMBRManageSpectatePlayer(spectatedPlayer.id, 'hide');
 
-        player.player:TeleportTo(spectatedPlayer:GetWorldPos());
+--         player.player:TeleportTo(spectatedPlayer:GetWorldPos());
 
-        local data = {
-            PlayerId = playerId,
-            SpectatedPlayerId = spectatedPlayer.id
-        };
+--         local data = {
+--             PlayerId = playerId,
+--             SpectatedPlayerId = spectatedPlayer.id
+--         };
 
-        Script.SetTimerForFunction(500, 'SCAAMBRSpectatePlayerAfterDelay', data);
-    else
+--         Script.SetTimerForFunction(500, 'SCAAMBRSpectatePlayerAfterDelay', data);
+--     else
 
-        -- Editor or server specific actions
-        if (System.IsEditor()) then
-            g_gameRules.game:SendTextMessage(0, g_localActorId, 'No player found');
-        else
-            g_gameRules.game:SendTextMessage(0, playerId, 'No player found');
-        end
-    end
-end
+--         -- Editor or server specific actions
+--         if (System.IsEditor()) then
+--             g_gameRules.game:SendTextMessage(0, g_localActorId, 'No player found');
+--         else
+--             g_gameRules.game:SendTextMessage(0, playerId, 'No player found');
+--         end
+--     end
+-- end
 
 -- !stopspectate <subcommand>
 -- Uses the !stopspectate command to stop spectating a player
-ChatCommands["!stopspectate"] = function(playerId, command)
-    local player = System.GetEntity(playerId);
+-- ChatCommands["!stopspectate"] = function(playerId, command)
+--     local player = System.GetEntity(playerId);
 
-    if (player.SCAAMBRIsSpectating and player.SCAAMBRIsSpectating == true) then
-        local playerChannel = player.actor:GetChannel();
+--     if (player.SCAAMBRIsSpectating and player.SCAAMBRIsSpectating == true) then
+--         local playerChannel = player.actor:GetChannel();
 
-        player.player:TeleportTo(SCAAMBRLobbyProperties.Positions[math.random(table.getn(SCAAMBRLobbyProperties.Positions))].Position);
+--         player.player:TeleportTo(SCAAMBRLobbyProperties.Positions[math.random(table.getn(SCAAMBRLobbyProperties.Positions))].Position);
 
-        player.SCAAMBRLastPosition = nil;
-        player.SCAAMBRIsSpectating = false;
+--         player.SCAAMBRLastPosition = nil;
+--         player.SCAAMBRIsSpectating = false;
 
-        player:EnablePhysics(true);
-        player:LoadObject(0, player.SCAAMBROriginalCGF);
-        player.allClients:SCAAMBRManageSpectatePlayer(playerId, 'unhide');
-        player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, playerId, 'stopspectate');
-    end
-end
+--         player:SetIsNeverNetRelevant(false);
+--         player:EnablePhysics(true);
+--         player:LoadObject(0, player.SCAAMBROriginalCGF);
+--         player.allClients:SCAAMBRManageSpectatePlayer(playerId, 'unhide');
+--         player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, playerId, 'stopspectate');
+--     end
+-- end

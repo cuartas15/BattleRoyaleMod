@@ -32,6 +32,7 @@ local SCAAMBRCustomPlayer = {
                 System.AddKeyBind('delete', 'SCAAMBRMenu delete');
                 System.AddKeyBind('left', 'SCAAMBRMenu left');
                 System.AddKeyBind('right', 'SCAAMBRMenu right');
+                System.AddKeyBind('end', 'SCAAMBRMenu end');
 
                 -- Sets the custom client variables
                 self.SCAAMBRCurrentGun = nil;
@@ -125,7 +126,20 @@ local SCAAMBRCustomPlayer = {
             -- SCAAMBRManageSpectatePlayer
             -- Manages all the spectator functions depending on what comes from the server
             SCAAMBRManageSpectatePlayer = function (self, spectatedPlayerId, action)
-                self:SCAAMBRManageTheSpectatePlayer(spectatedPlayerId, action);
+                if (string.match(action, 'filter')) then
+                    local action2 = '';
+                    local filter = '';
+                    local activate = ''
+                    local activate2 = false;
+                    action2, filter, activate = string.match(action, '(.*) (.*) (.*)');
+                    if (activate == 'true') then
+                        activate2 = true;
+                    end
+                    self.SCAAMBRFilter = filter;
+                    ActionMapManager.EnableActionFilter(filter, activate2);
+                else
+                    self:SCAAMBRManageTheSpectatePlayer(spectatedPlayerId, action);
+                end
             end
         },
         Server = {
@@ -358,11 +372,18 @@ local SCAAMBRCustomPlayer = {
                 self.SCAAMBRSpectatedPlayerId = nil;
                 self.SCAAMBRToggledSpectatorUI = false;
             elseif (action == 'hide') then
-                self:EnablePhysics(false);
+                -- self:Hide(1);
+                -- self:EnablePhysics(true);
+                -- self:SetPhysicParams(PHYSICPARAM_PLAYERDYN, {gravity = 0, mass = 0});
                 self:LoadObject(0, 'Objects/SCAAMCuartas/BattleRoyaleSpectator/spectator.cgf');
+                self:SetColliderMode(1);
             elseif (action == 'unhide') then
-                self:EnablePhysics(true);
+                -- self:Hide(0);
+                -- self:EnablePhysics(true);
+
+                -- self:SetPhysicParams(PHYSICPARAM_PLAYERDYN, {gravity = -13, mass = 120});
                 self:LoadObject(0, self.SCAAMBROriginalCGF);
+                self:SetColliderMode(0);
             end
         end,
 
@@ -379,8 +400,10 @@ local SCAAMBRCustomPlayer = {
                 local spectatedPlayer = System.GetEntity(self.SCAAMBRSpectatedPlayerId);
 
                 if (spectatedPlayer and spectatedPlayer.player) then
-                    self:SetWorldPos(spectatedPlayer:GetWorldPos());
+                    local spectatedPlayerPos = spectatedPlayer:GetWorldPos();
+                    -- spectatedPlayerPos.z = spectatedPlayerPos.z + 10;
 
+                    self:SetWorldPos(spectatedPlayerPos);
                     self:SCAAMBRStartSpectatePlayer();
                 else
                     self:SCAAMBRStartSpectatePlayer();

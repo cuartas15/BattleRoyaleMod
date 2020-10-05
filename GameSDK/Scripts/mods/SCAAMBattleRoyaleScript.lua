@@ -1,3 +1,13 @@
+-- Calling OnInitPreLoaded function to reload the UI on the client
+RegisterCallback(_G,
+    'OnInitPreLoaded',
+    nil,
+    function ()
+        Log("SCAAMBattleRoyale >> PreLoading BattleRoyale Config");
+        SCAAMBRPreInitModules();
+    end
+);
+
 -- Calling OnInitAllLoaded function to register the Battle royale config on level load
 RegisterCallback(_G,
     'OnInitAllLoaded',
@@ -16,14 +26,14 @@ RegisterCallback(_G,
             -- Do nothing
         end
 
-        if _G["PatchVars"] then
-            Log("Setup DEBUG Vars");
-            PatchVars({
-                ["g_debugRMI"] = 1,
-                ["log_Verbosity"] = 4,
-                ["net_log_remote_methods"] = 1,
-                ['net_disconnect_on_rmi_error'] = 0
-            });
-        end
+        -- if _G["PatchVars"] then
+        --     Log("Setup DEBUG Vars");
+        --     PatchVars({
+        --         ["g_debugRMI"] = 1,
+        --         ["log_Verbosity"] = 4,
+        --         ["net_log_remote_methods"] = 1,
+        --         ['net_disconnect_on_rmi_error'] = 0
+        --     });
+        -- end
     end
 );
