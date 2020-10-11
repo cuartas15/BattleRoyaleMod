@@ -1,4 +1,4 @@
--- SCAAM Battle Royale Mod v1.2
+-- SCAAM Battle Royale Mod v1.2.4
 -- Created by Cuartas
 
 -- Dear Modder: Almost everything was commented step by step for you to easily understand what
@@ -8,7 +8,7 @@
 -- Don't hesitate to provide feedback or bug reports in case you encounter an issue.
 -- Happy modding!
 
-SCAAMBRVersion = '1.2';
+SCAAMBRVersion = '1.2.4';
 
 -- Loading all the custom entities
 Script.LoadScript('Scripts/Entities/SCAAMCuartas/SCAAMBattleRoyaleCircle.lua');
@@ -3559,8 +3559,8 @@ SCAAMBRGameStats = {};
 -- SCAAMBRPreInitModules
 -- Manage UI reload stuff
 function SCAAMBRPreInitModules()
-    if (not CryAction.IsServer()) then
-        Log('SCAAMBattleRoyale >> Called client UI init from not IsServer');
+    if (not CryAction.IsDedicatedServer()) then
+        Log('SCAAMBattleRoyale >> Called client UI init from not IsDedicatedServer');
         ReloadModUIOnlyOnce();
     end
 end
@@ -3880,6 +3880,7 @@ function SCAAMBRInitGame(circleId)
                 local spawnLocations = playerPositionsCopy[player.SCAAMBRSpawnPoint].Positions;
                 local randomLocationPosition = table.remove(spawnLocations, math.random(table.getn(spawnLocations)));
                 player.player:TeleportTo(randomLocationPosition.Position);
+                player.SCAAMBRSpawnPoint = nil;
             else
                 local spawnLocations = playerPositionsCopy[SCAAMBRSpawnLocations[math.random(table.getn(SCAAMBRSpawnLocations))]].Positions;
                 local randomLocationPosition = table.remove(spawnLocations, math.random(table.getn(spawnLocations)));
@@ -5681,10 +5682,18 @@ end
 -- Updates the menu UI data after a game is over in all players which have the Menu opened
 function SCAAMBRUpdateMenuDataGlobally()
     local playerList = CryAction.GetPlayerList();
+    local lastGame = SCAAMBRDatabase:GetPage('GameNumber');
+    local gameData = new(SCAAMBRDatabase:GetPage('Game' .. lastGame));
+    gameData.MaxGame = tostring(lastGame);
+    gameData.MinGame = tostring(SCAAMBRDatabase:GetPage('GameNumberMin'));
+    gameData.GameNum = tostring(gameData.GameNum);
+    gameData.PlayerCount = tostring(gameData.PlayerCount);
 
     for key, player in pairs(playerList) do
         local steamId = player.player:GetSteam64Id();
         local playerChannel = player.actor:GetChannel();
+        local gameDataCopy = new(gameData);
+        local simplifiedScoreboard = {};
 
         -- Gets the player stats in a simplified form
         local myStats = SCAAMBRPlayerDatabase:GetPage(steamId);
@@ -5699,11 +5708,18 @@ function SCAAMBRUpdateMenuDataGlobally()
             myStats.Deaths = tostring(myStats.Deaths);
         end
 
-        -- Gets the min and max games
-        local gameData = {
-            MaxGame = tostring(SCAAMBRDatabase:GetPage('GameNumber')),
-            MinGame = tostring(SCAAMBRDatabase:GetPage('GameNumberMin'))
-        };
+        -- Completes the creation of game data
+        for key, value in pairs(gameDataCopy.Scoreboard) do
+            local scoreRow = {value.Position, value.Name, tostring(value.Kills), tostring(value.Damage), tostring(value.Time)};
+
+            if (value.SteamId == steamId) then
+                table.insert(scoreRow, 1);
+            end
+            
+            table.insert(simplifiedScoreboard, scoreRow);
+        end
+
+        gameDataCopy.Scoreboard = simplifiedScoreboard;
 
         -- Gets the map data in a simplified form
         local playerLocation = '';
@@ -5719,7 +5735,7 @@ function SCAAMBRUpdateMenuDataGlobally()
         };
 
         local allTheInfo = {
-            GameData = gameData,
+            GameData = gameDataCopy,
             MyStats = myStats,
             TopFifteen = SCAAMBRTopFifteen,
             MapData = mapData
@@ -6238,6 +6254,7 @@ end
 function SCAAMBRUIFunctions:SelectLocation()
     local player = System.GetEntity(g_localActorId);
     local locationSelected = UIAction.GetVariable('mod_SCAAMBRMenuUI', 0, 'LocationSelected');
+    player.SCAAMBRMenuData.MapData.Location = locationSelected;
 
     player.server:SCAAMBRALocationDat(g_localActorId, locationSelected);
 end
@@ -6364,7 +6381,14 @@ function SCAAMBRManageMenu(keyString)
 
                     -- Checks if the inventory, chat or game menu is not opened
                     if (ActionMapManager.IsFilterEnabled('only_ui') == false and ActionMapManager.IsFilterEnabled('inventory') == false) then
-                        player.server:SCAAMBRGetTheMenuDat(g_localActorId, '');
+                        if (not player.SCAAMBRMenuData) then
+                            player.server:SCAAMBRGetTheMenuDat(g_localActorId, '');
+                        else
+                            SCAAMBRUIFunctions:OpenMenu();
+                            SCAAMBRUIFunctions:ActivateMenuAfterDelay(player.SCAAMBRMenuData);
+                            UIAction.HideElement('mod_SCAAMBRStatsUI', 0);
+                            player.SCAAMBRMenuState = 'active';
+                        end
                     end
                 else
                     SCAAMBRUIFunctions:CloseMenu();
@@ -6768,8 +6792,6 @@ function SCAAMBRManageSpectate(playerId, action, value)
 
                 -- Disables relevance, physics and changes de model
                 player:SetIsNeverNetRelevant(true);
-                -- player:EnablePhysics(false);
-                -- player:LoadObject(0, 'Objects/SCAAMCuartas/BattleRoyaleSpectator/spectator.cgf');
                 player.onClient:SCAAMBRManageSpectatePlayer(playerChannel, player.SCAAMBRSpectatedPlayerId, 'hide');
 
                 -- Teleports the player towards the spectated player
@@ -6831,7 +6853,13 @@ function SCAAMBRManageSpectate(playerId, action, value)
                                 nextSpectatedPlayerId = SCAAMBRSpectatorPlayerList[1];
                             end
                         end
-                        break;
+
+                        isValidPlayer = System.GetEntity(nextSpectatedPlayerId);
+                        if (isValidPlayer and isValidPlayer.player) then
+                            break;
+                        else
+                            nextSpectatedPlayerId = nil;
+                        end
                     end
                 end
 
@@ -7098,7 +7126,7 @@ RegisterCallbackReturnAware(
 
                 -- Assign custom BR keybinds to players
                 local playerChannel = player.actor:GetChannel();
-                player.onClient:SCAAMBRInitThePlayer(playerChannel);
+                player.onClient:SCAAMBRInitThePlayer(playerChannel, player.player:GetSteam64Id());
                 
                 -- Tries to teleport the player to a lobby spawn in hopes to fix the issue with the freeze
                 player:SetWorldPos(SCAAMBRLobbyProperties.Positions[math.random(table.getn(SCAAMBRLobbyProperties.Positions))].Position);
@@ -7181,7 +7209,7 @@ RegisterCallbackReturnAware(
 
                 -- Assign custom BR keybinds to players
                 local playerChannel = player.actor:GetChannel();
-                player.onClient:SCAAMBRInitThePlayer(playerChannel);
+                player.onClient:SCAAMBRInitThePlayer(playerChannel, player.player:GetSteam64Id());
 
                 -- Inits the custom UI support for players
                 player.onClient:SCAAMBRUIInit(playerChannel);
@@ -7856,7 +7884,7 @@ end
 --     stats = {
 --         Name = '50 Temp player long name',
 --         SteamId = '8596954665';
---         Kills = 75,SCAAMBROpenTheMenuDat
+--         Kills = 75,
 --         Damage = 413,
 --         Time = 78,
 --         Position = 50

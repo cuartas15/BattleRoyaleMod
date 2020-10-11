@@ -19,7 +19,7 @@ local SCAAMBRCustomPlayer = {
                 
             -- SCAAMBRInitThePlayer
             -- Initializes a player
-            SCAAMBRInitThePlayer = function (self)
+            SCAAMBRInitThePlayer = function (self, steamId)
                 -- Assigns the battle royale custom keys
                 System.AddCCommand('SCAAMBRStimPack', 'SCAAMBRApplyStimPackByKey(%1)', '');
                 System.AddCCommand('SCAAMBRArmor', 'SCAAMBRApplyArmorByKey(%1)', '');
@@ -58,9 +58,10 @@ local SCAAMBRCustomPlayer = {
                 end
 
                 self.SCAAMBRAntiButtonSpamCounter = 0;
-                -- self.SCAAMBRSpectatedPlayer = nil;
-                -- self.SCAAMBRToggledSpectateUI = false;
-                -- self.SCAAMBRSavedOwnPosition = {};
+                
+                -- Menu data
+                self.SCAAMBRMenuData = nil;
+                self.SCAAMBRSteamId = steamId;
 
                 SCAAMBRStartPlayerGeneralUpdate();
             end,
@@ -80,33 +81,6 @@ local SCAAMBRCustomPlayer = {
                     self.server:SCAAMBRRequestDat(self.id, totalChunks, operation);
                 else
                     self:SCAAMBROpenTheMenuClient(operation, totalChunks);
-                end
-            end,
-
-            -- SCAAMBROpenTheMenuDat
-            -- Changes the state from idle to active on the menu and populates the sections with info
-            SCAAMBROpenTheMenuDat = function (self, operation, chunkCount, chunkOne, chunkTwo, chunkThree, chunkFour)
-                local totalChunk = chunkOne .. chunkTwo .. chunkThree .. chunkFour;
-
-                -- Checks if all the chunks were added to the final built string, this to validate
-                -- integrity of data because it may happen that some RMI call won't make it
-                if (self.SCAAMBRUIBuiltChunkCounter == tonumber(chunkCount)) then
-
-                    -- Parses the JSON data
-                    local menuData = SCAAMBRJSON.parse(totalChunk);
-
-                    if (operation == 'open') then
-                        SCAAMBRUIFunctions:OpenMenu();
-                        SCAAMBRUIFunctions:ActivateMenuAfterDelay(menuData);
-                        UIAction.HideElement('mod_SCAAMBRStatsUI', 0);
-                        self.SCAAMBRMenuState = 'active';
-                    elseif (operation == 'updategamedata') then
-                        SCAAMBRUIFunctions:UpdateGameData(menuData);
-                    elseif (operation == 'updatemenudata' and self.SCAAMBRMenuState == 'active') then
-                        SCAAMBRUIFunctions:UpdateMenuData(menuData);
-                    end
-                else
-                    g_gameRules.game:SendTextMessage(0, g_localActorId, 'Failed opening menu, please try again');
                 end
             end,
 
@@ -325,14 +299,19 @@ local SCAAMBRCustomPlayer = {
                 local menuData = SCAAMBRJSON.parse(self.SCAAMBRUIBuiltJSON);
 
                 if (operation == 'open') then
+                    self.SCAAMBRMenuData = menuData;
                     SCAAMBRUIFunctions:OpenMenu();
                     SCAAMBRUIFunctions:ActivateMenuAfterDelay(menuData);
                     UIAction.HideElement('mod_SCAAMBRStatsUI', 0);
                     self.SCAAMBRMenuState = 'active';
                 elseif (operation == 'updategamedata') then
                     SCAAMBRUIFunctions:UpdateGameData(menuData);
-                elseif (operation == 'updatemenudata' and self.SCAAMBRMenuState == 'active') then
-                    SCAAMBRUIFunctions:UpdateMenuData(menuData);
+                elseif (operation == 'updatemenudata') then
+                    self.SCAAMBRMenuData = menuData;
+
+                    if (self.SCAAMBRMenuState == 'active') then
+                        SCAAMBRUIFunctions:UpdateMenuData(menuData);
+                    end
                 end
             else
                 g_gameRules.game:SendTextMessage(0, g_localActorId, 'Failed opening menu, please try again');
@@ -377,6 +356,7 @@ local SCAAMBRCustomPlayer = {
                 -- self:SetPhysicParams(PHYSICPARAM_PLAYERDYN, {gravity = 0, mass = 0});
                 self:LoadObject(0, 'Objects/SCAAMCuartas/BattleRoyaleSpectator/spectator.cgf');
                 self:SetColliderMode(1);
+                self:SetSlotPos(0, {x = 0, y = 0, z = 0.35});
             elseif (action == 'unhide') then
                 -- self:Hide(0);
                 -- self:EnablePhysics(true);
@@ -384,6 +364,7 @@ local SCAAMBRCustomPlayer = {
                 -- self:SetPhysicParams(PHYSICPARAM_PLAYERDYN, {gravity = -13, mass = 120});
                 self:LoadObject(0, self.SCAAMBROriginalCGF);
                 self:SetColliderMode(0);
+                self:SetSlotPos(0, {x = 0, y = 0, z = 0});
             end
         end,
 
@@ -414,7 +395,7 @@ local SCAAMBRCustomPlayer = {
     Expose = {
         ClientMethods = {
             SCAAMBRUIInit = { RELIABLE_ORDERED, POST_ATTACH },
-            SCAAMBRInitThePlayer = { RELIABLE_ORDERED, POST_ATTACH },
+            SCAAMBRInitThePlayer = { RELIABLE_ORDERED, POST_ATTACH, STRING },
             SCAAMBRPlaySoundDat = { RELIABLE_ORDERED, PRE_ATTACH, STRING },
             SCAAMBRToggleUI = { RELIABLE_ORDERED, POST_ATTACH, STRING, BOOL },
             SCAAMBRChangeTheStates = { RELIABLE_ORDERED, POST_ATTACH, STRING, STRING },
